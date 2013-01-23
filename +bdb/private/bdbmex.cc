@@ -113,17 +113,37 @@ void Record::deserialize_mxarray(const vector<uint8_t>& binary,
 
 #endif
 
-Database::Database() : code_(0), database_(NULL) {}
+Database::Database() : code_(0), database_(NULL), environment_(NULL) {}
 
 Database::~Database() {
   close();
 }
 
-bool Database::open(const string& filename) {
-  code_ = db_create(&database_, NULL, 0);
+bool Database::open(const string& filename, const string& home_dir) {
+  if (home_dir.empty()) {
+    environment_ = NULL;
+  }
+  else {
+    u_int32_t env_flags = DB_CREATE    |
+                          DB_INIT_TXN  |
+                          DB_INIT_LOCK |
+                          DB_INIT_LOG  |
+                          DB_INIT_MPOOL;
+    code_ = db_env_create(&environment_, 0);
+    if (!ok()) return false;
+    code_ = environment_->open(environment_, 
+                               home_dir.c_str(),
+                               env_flags,
+                               0);
+    if (!ok()) return false;
+    code_ = environment_->set_flags(environment_, DB_AUTO_COMMIT, 1);
+    if (!ok()) return false;
+  }
+  code_ = db_create(&database_, environment_, 0);
   if (!ok()) return false;
   code_ = database_->open(database_,
-                          NULL, filename.c_str(),
+                          NULL,
+                          filename.c_str(),
                           NULL,
                           DB_BTREE,
                           DB_CREATE,
@@ -131,11 +151,17 @@ bool Database::open(const string& filename) {
   return ok();
 }
 
-void Database::close() {
+bool Database::close() {
   if (database_) {
-    database_->close(database_, 0);
+    code_ = database_->close(database_, 0);
     database_ = NULL;
   }
+  if (!ok()) return false;
+  if (environment_) {
+    code_ = environment_->close(environment_, 0);
+    environment_ = NULL;
+  }
+  return ok();
 }
 
 int Database::error_code() {
@@ -249,9 +275,11 @@ DatabaseManager::DatabaseManager() : last_id_(0) {}
 
 DatabaseManager::~DatabaseManager() {}
 
-int DatabaseManager::open(const string& filename) {
-  if (!connections_[++last_id_].open(filename))
+int DatabaseManager::open(const string& filename, const string& home_dir) {
+  if (!connections_[++last_id_].open(filename, home_dir)) {
+    connections_.erase(last_id_);
     ERROR("Unable to open: %s.", filename.c_str());
+  }
   return last_id_;
 }
 
@@ -365,11 +393,16 @@ void OpenOperation::run(int nlhs, mxArray* plhs[]) {
   if (nlhs > 1)
     ERROR("Too many output: %d for 1.", nlhs);
   const vector<const mxArray*>& args = arguments();
-  if (args.size() != 1 || !mxIsChar(args[0]))
+  if (args.size() < 1 || args.size() > 2)
+    ERROR("Wrong number of arguments: %d for 1 or 2.", args.size());
+  if (!mxIsChar(args[0]) || (args.size() == 2 && !mxIsChar(args[1])))
     ERROR("Failed to parse filename.");
   string filename(mxGetChars(args[0]),
                   mxGetChars(args[0]) + mxGetNumberOfElements(args[0]));
-  plhs[0] = mxCreateDoubleScalar(manager()->open(filename));
+  string home_dir  = (args.size() == 1) ? "" :
+      string(mxGetChars(args[1]),
+             mxGetChars(args[1]) + mxGetNumberOfElements(args[1]));
+  plhs[0] = mxCreateDoubleScalar(manager()->open(filename, home_dir));
 }
 
 void CloseOperation::run(int nlhs, mxArray* plhs[]) {

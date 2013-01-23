@@ -93,8 +93,8 @@ class Database {
 public:
   Database();
   ~Database();
-  // Open a connection.
-  bool open(const string& filename);
+  // Open a connection. Optionally, it takes a path to the environment dir.
+  bool open(const string& filename, const string& home_dir = "");
   // Return the last error code.
   int error_code();
   // Return the last error message.
@@ -118,12 +118,14 @@ public:
 
 private:
   // Close the connection.
-  void close();
+  bool close();
 
   // Last return code.
   int code_;
   // DB C object.
   DB* database_;
+  // Environment C object.
+  DB_ENV* environment_;
 };
 
 // Database session manager. Container for Database objects.
@@ -132,7 +134,7 @@ public:
   DatabaseManager();
   ~DatabaseManager();
   // Create a new connection.
-  int open(const string& filename);
+  int open(const string& filename, const string& home_dir = "");
   // Close the connection.
   void close(int id);
   // Default id.
