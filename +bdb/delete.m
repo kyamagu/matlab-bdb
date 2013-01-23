@@ -10,5 +10,5 @@ function delete(varargin)
 % The key must be a char array.
 %
 % See also bdb.put bdb.get
-  driver('del', varargin{:});
+  driver_('del', varargin{:});
 end

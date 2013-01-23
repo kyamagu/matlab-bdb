@@ -10,5 +10,5 @@ function value = get(varargin)
 % The key must be a char array.
 %
 % See also bdb.put bdb.delete
-  value = driver('get', varargin{:});
+  value = driver_('get', varargin{:});
 end
