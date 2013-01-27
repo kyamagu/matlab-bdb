@@ -12,10 +12,10 @@ Contents
 
 The package contains following files.
 
-    +bdb/         API functions.
-    +bdb/private  Internal driver functions.
-    test/         Optional functions to check the functionality.
-    README.md     This file.
+    +bdb/          API functions.
+    +bdb/private/  Internal driver functions.
+    test/          Optional functions to check the functionality.
+    README.md      This file.
 
 Compile
 -------
@@ -54,9 +54,9 @@ Here is a quick usage example.
 
     >> bdb.open('test.db');    % Open a database.
     >> bdb.put('a', 'foo');    % Store a key-value pair.
-    >> bdb.put('b', magic(4)); % Store a key-value pair.
+    >> bdb.put(2, magic(4));   % Store a key-value pair.
     >> a = bdb.get('a');       % Retrieve a value.
-    >> b = bdb.get('b');       % Retrieve a value.
+    >> b = bdb.get(2);         % Retrieve a value.
     >> bdb.delete('a');        % Delete an entry.
     >> keys = bdb.keys();      % All keys at once.
     >> values = bdb.values();  % All values at once.
@@ -73,6 +73,7 @@ To use the database in multiple processes, open the database in the
 environment. Note that you need to create an environment directory
 if not existing.
 
+    >> mkdir('/path/to/test_db_env');
     >> id = bdb.open('test.db', '/path/to/test_db_env');
 
 Notes

@@ -7,7 +7,7 @@ function value = get(varargin)
 % The function retrieves an entry with the given key in the specified
 % database session. When the id is omitted, the default session is used.
 %
-% The key must be a char array.
+% The key must be an ordinary object.
 %
 % See also bdb.put bdb.delete
   value = driver_('get', varargin{:});

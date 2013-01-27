@@ -7,7 +7,7 @@ function results = keys(varargin)
 % The function retrieves all keys from the specified database session. When
 % the id is omitted, the default session is used.
 %
-% The results are returned as a cell array of strings.
+% The results are returned as a cell array.
 %
 % See also bdb.values
   results = driver_('keys', varargin{:});

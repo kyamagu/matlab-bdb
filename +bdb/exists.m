@@ -7,7 +7,7 @@ function value = exists(varargin)
 % The function checks if an entry with the given key exists in the specified
 % database session. When the id is omitted, the default session is used.
 %
-% The key must be a char array.
+% The key must be an ordinary object.
 %
 % See also bdb.get
   value = driver_('exists', varargin{:});

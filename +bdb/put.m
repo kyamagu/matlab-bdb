@@ -7,8 +7,8 @@ function put(varargin)
 % The function stores a value for the given key in the specified database
 % session. When the id is omitted, the default session is used.
 %
-% The key must be a char array. When there is an existing entry for the
-% given key, the entry will be overwritten.
+% The key and the value must be an ordinary object. When there is an existing
+% entry for the given key, the entry will be overwritten.
 %
 % See also bdb.get bdb.delete
   driver_('put', varargin{:});
