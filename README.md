@@ -45,6 +45,10 @@ detail of each function.
     bdb.keys     Return a list of keys in the database.
     bdb.values   Return a list of values in the database.
     bdb.stat     Get a statistics of the database.
+    bdb.exists   Check if an entry exists.
+
+Example
+-------
 
 Here is a quick usage example.
 
@@ -64,6 +68,12 @@ To open multiple sessions, use the session id returned from `bdb.open`.
     >> bdb.put(id, 'a', 'bar');
     >> a = bdb.get(id, 'a');
     >> bdb.close(id);
+
+To use the database in multiple processes, open the database in the
+environment. Note that you need to create an environment directory
+if not existing.
+
+    >> id = bdb.open('test.db', '/path/to/test_db_env');
 
 Notes
 -----
