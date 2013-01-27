@@ -53,10 +53,11 @@ Example
 Here is a quick usage example.
 
     >> bdb.open('test.db');    % Open a database.
-    >> bdb.put('a', 'foo');    % Store a key-value pair.
+    >> bdb.put('foo', 'bar');  % Store a key-value pair.
     >> bdb.put(2, magic(4));   % Store a key-value pair.
-    >> a = bdb.get('a');       % Retrieve a value.
+    >> a = bdb.get('foo');     % Retrieve a value.
     >> b = bdb.get(2);         % Retrieve a value.
+    >> flag = bdb.exists(3);   % Check if a key exists.
     >> bdb.delete('a');        % Delete an entry.
     >> keys = bdb.keys();      % All keys at once.
     >> values = bdb.values();  % All values at once.
@@ -81,14 +82,14 @@ Notes
 
 ### Data compression
 
-By default, data compression is enabled in the storage. It is possible to
-disable data compression in the compile time with `--enable_zlib` option.
+Data compression is enabled by default to save storage space. It is possible
+to disable data compression at compile time with `--enable_zlib` option.
 
     >> bdb.make('--enable_zlib', false)
 
 Compression leads to smaller storage size with the cost of slower speed. In
-general, when stored data contain regular patterns, such as an all-zero array,
-compression takes the biggest effect. However, if data are close to random,
+general, when data contain regular patterns, such as when data are all-zero,
+compression makes the biggest effect. However, if data are close to random,
 there is no advantage in the resulting storage size.
 
 ### Limited support
