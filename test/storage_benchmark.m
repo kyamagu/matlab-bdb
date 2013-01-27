@@ -15,12 +15,12 @@ function storage_benchmark
     bdb.open('_benchmark.db');
     tic;
     for i = 1:datasize
-      bdb.put(sprintf('%06d',i), x);
+      bdb.put(i, x);
     end
     fprintf('bdb write: %f seconds.\n', toc);
     tic;
     for i = 1:datasize
-      bdb.get(sprintf('%06d',i));
+      bdb.get(i);
     end
     fprintf('bdb read: %f seconds.\n', toc);
     bdb.close;

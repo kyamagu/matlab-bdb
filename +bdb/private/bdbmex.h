@@ -18,7 +18,7 @@ using namespace std;
 // Alias for the mex error function.
 #define ERROR(...) mexErrMsgIdAndTxt("db:error", __VA_ARGS__)
 
-// Hidden MEX API
+// Hidden MEX API.
 EXTERN_C mxArray* mxSerialize(const mxArray*);
 EXTERN_C mxArray* mxDeserialize(const void*, size_t);
 
@@ -30,12 +30,12 @@ public:
   // Construct a new record for cursor operation.
   Record();
   // Construct a new record for retrieval.
-  Record(const string& key);
+  Record(const mxArray* key);
   // Construct a new record for store.
-  Record(const string& key, const mxArray* value);
+  Record(const mxArray* key, const mxArray* value);
   ~Record();
   // Get key.
-  void get_key(string* key);
+  void get_key(mxArray** key);
   // Get value.
   void get_value(mxArray** value);
   // Mutable key.
@@ -47,20 +47,26 @@ private:
   // Reset the record.
   void reset(u_int32_t key_flags, u_int32_t value_flags);
   // Set key.
-  void set_key(const string& key);
+  void set_key(const mxArray* key);
   // Set value.
   void set_value(const mxArray* value);
   // Serialize an mxArray.
   void serialize_mxarray(const mxArray* value, vector<uint8_t>* binary);
   // Deserialize an mxArray.
   void deserialize_mxarray(const vector<uint8_t>& binary, mxArray** value);
+  // Serialize and compress an mxArray.
+  void compress_mxarray(const mxArray* value, vector<uint8_t>* binary);
+  // Decompress and deserialize mxArray.
+  void decompress_mxarray(const vector<uint8_t>& binary, mxArray** value);
 
   // Key or the record.
   DBT key_;
   // Value of the record.
   DBT value_;
   // Temporary buffer for reference.
-  vector<uint8_t> buffer_;
+  vector<uint8_t> key_buffer_;
+  // Temporary buffer for reference.
+  vector<uint8_t> value_buffer_;
 };
 
 // Database cursor.
@@ -102,13 +108,13 @@ public:
   // Return if the status is okay.
   bool ok() { return code_ == 0; }
   // Get an entry.
-  bool get(const string& key, mxArray** value);
+  bool get(const mxArray* key, mxArray** value);
   // Put an entry.
-  bool put(const string& key, const mxArray* value);
+  bool put(const mxArray* key, const mxArray* value);
   // Delete an entry.
-  bool del(const string& key);
+  bool del(const mxArray* key);
   // Check if the entry exists.
-  bool exists(const string& key, mxArray** value);
+  bool exists(const mxArray* key, mxArray** value);
   // Return database statistics.
   bool stat(mxArray** output);
   // Dump keys in the database.
@@ -128,11 +134,11 @@ private:
   DB_ENV* environment_;
 };
 
-// Database session manager. Container for Database objects.
-class DatabaseManager {
+// Database session sessions. Container for Database objects.
+class Sessions {
 public:
-  DatabaseManager();
-  ~DatabaseManager();
+  Sessions();
+  ~Sessions();
   // Create a new connection.
   int open(const string& filename, const string& home_dir = "");
   // Close the connection.
@@ -159,40 +165,26 @@ private:
 //
 class Operation {
 public:
-  // State definition for the parser.
-  typedef enum {
-    PARSER_INIT,
-    PARSER_ID,
-    PARSER_CMD,
-    PARSER_FINISH
-  } PARSER_STATE;
-
   // Destructor.
   virtual ~Operation() {}
   // Factory method for operation. Takes rhs of the mexFunction and return
   // a new operation object. Caller is responsible for the destruction after
   // use.
-  static Operation* parse(int nrhs, const mxArray *prhs[]);
+  static Operation* parse(int nrhs, const mxArray* prhs[]);
   // Execute the operation.
   virtual void run(int nlhs, mxArray* plhs[]) = 0;
 
 protected:
   // Default constructor is prohibited. Use parse() method.
-  Operation() : id_(0) {}
-  // Accessor for the id.
-  int id() const { return id_; }
-  // Accessor for the operation arguments.
-  const vector<const mxArray*>& arguments() { return args_; }
-  // Accessor for the manager.
-  static DatabaseManager* manager() { return &manager_; }
+  Operation() {}
+  // Parser implementation.
+  virtual void parse_internal(const vector<const mxArray*>& args) = 0;
+  // Accessor for the sessions.
+  static Sessions* sessions() { return &sessions_; }
 
 private:
-  // Database session manager.
-  static DatabaseManager manager_;
-  // Connection id.
-  int id_;
-  // Arguments to the operation.
-  vector<const mxArray*> args_;
+  // Database session sessions.
+  static Sessions sessions_;
 };
 
 // Open operation class.
@@ -200,6 +192,16 @@ class OpenOperation : public Operation {
 public:
   // Open a connection.
   virtual void run(int nlhs, mxArray* plhs[]);
+
+protected:
+  // Parse rhs arguments.
+  virtual void parse_internal(const vector<const mxArray*>& args);
+
+private:
+  // File name.
+  string filename_;
+  // Environment directory.
+  string home_dir_;
 };
 
 // Close operation class.
@@ -207,6 +209,14 @@ class CloseOperation : public Operation {
 public:
   // Close the connection.
   virtual void run(int nlhs, mxArray* plhs[]);
+
+protected:
+  // Parse rhs arguments.
+  virtual void parse_internal(const vector<const mxArray*>& args);
+
+private:
+  // Session id.
+  int id_;
 };
 
 // Get operation class.
@@ -214,6 +224,16 @@ class GetOperation : public Operation {
 public:
   // Execute a get operation.
   virtual void run(int nlhs, mxArray* plhs[]);
+
+protected:
+  // Parse rhs arguments.
+  virtual void parse_internal(const vector<const mxArray*>& args);
+
+private:
+  // Database connection.
+  Database* connection_;
+  // Input key.
+  const mxArray* key_;
 };
 
 // Put operation class.
@@ -221,6 +241,18 @@ class PutOperation : public Operation {
 public:
   // Execute a set operation.
   virtual void run(int nlhs, mxArray* plhs[]);
+
+protected:
+  // Parse rhs arguments.
+  virtual void parse_internal(const vector<const mxArray*>& args);
+
+private:
+  // Database connection.
+  Database* connection_;
+  // Input key.
+  const mxArray* key_;
+  // Input value.
+  const mxArray* value_;
 };
 
 // Del operation class.
@@ -228,6 +260,16 @@ class DelOperation : public Operation {
 public:
   // Execute a del operation.
   virtual void run(int nlhs, mxArray* plhs[]);
+
+protected:
+  // Parse rhs arguments.
+  virtual void parse_internal(const vector<const mxArray*>& args);
+
+private:
+  // Database connection.
+  Database* connection_;
+  // Input key.
+  const mxArray* key_;
 };
 
 // Exists operation class.
@@ -235,6 +277,16 @@ class ExistsOperation : public Operation {
 public:
   // Execute an exists operation.
   virtual void run(int nlhs, mxArray* plhs[]);
+
+protected:
+  // Parse rhs arguments.
+  virtual void parse_internal(const vector<const mxArray*>& args);
+
+private:
+  // Database connection.
+  Database* connection_;
+  // Input key.
+  const mxArray* key_;
 };
 
 // Stat operation class.
@@ -242,6 +294,14 @@ class StatOperation : public Operation {
 public:
   // Execute an stat operation.
   virtual void run(int nlhs, mxArray* plhs[]);
+
+protected:
+  // Parse rhs arguments.
+  virtual void parse_internal(const vector<const mxArray*>& args);
+
+private:
+  // Database connection.
+  Database* connection_;
 };
 
 // Keys operation class.
@@ -249,6 +309,14 @@ class KeysOperation : public Operation {
 public:
   // Execute a keys operation.
   virtual void run(int nlhs, mxArray* plhs[]);
+
+protected:
+  // Parse rhs arguments.
+  virtual void parse_internal(const vector<const mxArray*>& args);
+
+private:
+  // Database connection.
+  Database* connection_;
 };
 
 // Values operation class.
@@ -256,6 +324,14 @@ class ValuesOperation : public Operation {
 public:
   // Execute a values operation.
   virtual void run(int nlhs, mxArray* plhs[]);
+
+protected:
+  // Parse rhs arguments.
+  virtual void parse_internal(const vector<const mxArray*>& args);
+
+private:
+  // Database connection.
+  Database* connection_;
 };
 
 } // namespace dbmex
