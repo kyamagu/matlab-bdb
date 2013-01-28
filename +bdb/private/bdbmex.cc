@@ -304,7 +304,7 @@ void Sessions::close(int id) {
 }
 
 int Sessions::default_id() const {
-  return last_id_;
+  return (connections_.empty()) ? 0 : connections_.rbegin()->first;
 }
 
 int Sessions::last_id() const {
