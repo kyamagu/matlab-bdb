@@ -3,9 +3,9 @@ Matlab BDB
 
 Persistent key-value storage for matlab.
 
-Matlab BDB is yet another storage for Matlab. It is a key-value stores for
-any ordinary matlab objects, and suitable for storing a lot of small to medium
-sized objects. The implementation is based on Berkeley DB.
+Matlab BDB is yet another storage for Matlab. It is a key-value storage for
+matlab value objects, and suitable for storing a lot of small to medium
+sized data. The implementation is based on Berkeley DB.
 
 Contents
 --------
@@ -70,9 +70,9 @@ To open multiple sessions, use the session id returned from `bdb.open`.
     >> a = bdb.get(id, 'a');
     >> bdb.close(id);
 
-To use the database in multiple processes, open the database in the
+To use a database in multiple processes, open the database in an
 environment. Note that you need to create an environment directory
-if not existing.
+if not existing. This will improve concurrency support.
 
     >> mkdir('/path/to/test_db_env');
     >> id = bdb.open('test.db', '/path/to/test_db_env');
