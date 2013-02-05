@@ -17,19 +17,30 @@ The package contains following files.
     test/          Optional functions to check the functionality.
     README.md      This file.
 
-Compile
--------
+Prerequisites
+-------------
 
 The prerequisites are:
 
  * libdb
  * zlib
 
-Have these libraries installed in the system. The `bdb.make` function builds
-necessary dependent files. Check `bdb.make` for the detail of compile-time
-options.
+Have these libraries installed in the system. For example, in Debian/Ubuntu
+Linux,
 
-    >> bdb.make
+    $ apt-get install libdb-dev libz-dev
+
+In macports,
+
+    $ port install db53 zlib
+
+Build
+-----
+
+The `bdb.make` function builds necessary dependent files. Check `bdb.make` for
+the detail of compile-time options.
+
+    >> bdb.make;
 
 API
 ---
