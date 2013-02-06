@@ -11,5 +11,5 @@ function put(varargin)
 % entry for the given key, the entry will be overwritten.
 %
 % See also bdb.get bdb.delete
-  driver_('put', varargin{:});
+  driver_(mfilename, varargin{:});
 end

@@ -10,5 +10,5 @@ function delete(varargin)
 % The key must be an ordinary object.
 %
 % See also bdb.put bdb.get
-  driver_('del', varargin{:});
+  driver_(mfilename, varargin{:});
 end

@@ -10,5 +10,5 @@ function results = keys(varargin)
 % The results are returned as a cell array.
 %
 % See also bdb.values
-  results = driver_('keys', varargin{:});
+  results = driver_(mfilename, varargin{:});
 end

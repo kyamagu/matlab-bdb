@@ -8,5 +8,5 @@ function close(varargin)
 % omitted, the default session is closed.
 %
 % See also bdb.open
-  driver_('close', varargin{:});
+  driver_(mfilename, varargin{:});
 end
