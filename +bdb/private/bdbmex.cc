@@ -346,189 +346,198 @@ Operation* Operation::parse(int nrhs, const mxArray *prhs[]) {
     operation.reset(new ValuesOperation());
   else
     ERROR("Invalid operation: %d", operation_name.c_str());
-  vector<const mxArray*> args(prhs + 1, prhs + nrhs);
-  operation->parse_internal(args);
   return operation.release();
 }
 
-void OpenOperation::parse_internal(const vector<const mxArray*>& args) {
-  if (args.size() < 1 || args.size() > 2)
-    ERROR("Wrong number of arguments: %d for 1 or 2.", args.size());
-  if (!mxIsChar(args[0]) || (args.size() == 2 && !mxIsChar(args[1])))
-    ERROR("Failed to parse filename.");
-  filename_.assign(mxGetChars(args[0]),
-                   mxGetChars(args[0]) + mxGetNumberOfElements(args[0]));
-  home_dir_.assign((args.size() == 1) ? "" : string(
-      mxGetChars(args[1]),
-      mxGetChars(args[1]) + mxGetNumberOfElements(args[1])));
-}
-
-void OpenOperation::run(int nlhs, mxArray* plhs[]) {
+void OpenOperation::run(int nlhs,
+                        mxArray* plhs[],
+                        int nrhs,
+                        const mxArray *prhs[]) {
   if (nlhs > 1)
     ERROR("Too many output: %d for 1.", nlhs);
-  plhs[0] = mxCreateDoubleScalar(sessions()->open(filename_, home_dir_));
+  if (nrhs < 1 || nrhs > 2)
+    ERROR("Wrong number of arguments: %d for 1 or 2.", nrhs);
+  if (!mxIsChar(prhs[0]) || (nrhs == 2 && !mxIsChar(prhs[1])))
+    ERROR("Invalid filename is given.");
+  string filename(mxGetChars(prhs[0]),
+                  mxGetChars(prhs[0]) + mxGetNumberOfElements(prhs[0]));
+  string home_dir((nrhs== 1) ? "" : string(mxGetChars(prhs[1]),
+      mxGetChars(prhs[1]) + mxGetNumberOfElements(prhs[1])));
+  plhs[0] = mxCreateDoubleScalar(sessions()->open(filename, home_dir));
 }
 
-void CloseOperation::parse_internal(const vector<const mxArray*>& args) {
-  if (args.size() > 1 || (args.size() == 1 && !mxIsNumeric(args[0])))
-    ERROR("Invalid input.");
-  id_ = (args.empty()) ? sessions()->default_id() : mxGetScalar(args[0]);
-}
-
-void CloseOperation::run(int nlhs, mxArray* plhs[]) {
+void CloseOperation::run(int nlhs,
+                         mxArray* plhs[],
+                         int nrhs,
+                         const mxArray *prhs[]) {
   if (nlhs)
     ERROR("Too many output: %d for 0.", nlhs);
-  sessions()->close(id_);
-}
-
-void GetOperation::parse_internal(const vector<const mxArray*>& args) {
-  if (args.size() > 2)
-    ERROR("Too many input: %d for 1 or 2.", args.size());
-  if (args.size() == 1) {
-    connection_ = sessions()->get(sessions()->default_id());
-    key_ = args[0];
-  }
-  else if (mxIsNumeric(args[0])) {
-    connection_ = sessions()->get(mxGetScalar(args[0]));
-    key_ = args[1];
-  }
-  else
+  if (nrhs > 1 || (nrhs == 1 && !mxIsNumeric(prhs[0])))
     ERROR("Invalid input.");
+  int id = (nrhs == 0) ? sessions()->default_id() : mxGetScalar(prhs[0]);
+  sessions()->close(id);
 }
 
-void GetOperation::run(int nlhs, mxArray* plhs[]) {
+void GetOperation::run(int nlhs,
+                       mxArray* plhs[],
+                       int nrhs,
+                       const mxArray *prhs[]) {
+  const mxArray* key = NULL;
+  Database* connection = NULL;
   if (nlhs > 1)
     ERROR("Too many output: %d for 1.", nlhs);
-  if (!connection_->get(key_, &plhs[0]))
-    ERROR("Failed to get an entry: %s", connection_->error_message());
-}
-
-void PutOperation::parse_internal(const vector<const mxArray*>& args) {
-  if (args.size() > 3)
-    ERROR("Too many input: %d for 2 or 3.", args.size());
-  if (args.size() == 2) {
-    connection_ = sessions()->get(sessions()->default_id());
-    key_ = args[0];
-    value_ = args[1];
+  if (nrhs > 2)
+    ERROR("Too many input: %d for 1 or 2.", nrhs);
+  if (nrhs == 1) {
+    connection = sessions()->get(sessions()->default_id());
+    key = prhs[0];
   }
-  else if (mxIsNumeric(args[0])) {
-    connection_ = sessions()->get(mxGetScalar(args[0]));
-    key_ = args[1];
-    value_ = args[2];
+  else if (mxIsNumeric(prhs[0])) {
+    connection = sessions()->get(mxGetScalar(prhs[0]));
+    key = prhs[1];
   }
   else
     ERROR("Invalid input.");
+  if (!connection->get(key, &plhs[0]))
+    ERROR("Failed to get an entry: %s", connection->error_message());
 }
 
-void PutOperation::run(int nlhs, mxArray* plhs[]) {
+void PutOperation::run(int nlhs,
+                       mxArray* plhs[],
+                       int nrhs,
+                       const mxArray *prhs[]) {
+  const mxArray* key = NULL;
+  const mxArray* value = NULL;
+  Database* connection = NULL;
   if (nlhs > 0)
     ERROR("Too many output: %d for 1.", nlhs);
-  if (!connection_->put(key_, value_))
-    ERROR("Failed to put an entry: %s", connection_->error_message());
-}
-
-void DelOperation::parse_internal(const vector<const mxArray*>& args) {
-  if (args.size() > 2)
-    ERROR("Too many input: %d for 1 or 2.", args.size());
-  if (args.size() == 1) {
-    connection_ = sessions()->get(sessions()->default_id());
-    key_ = args[0];
+  if (nrhs > 3)
+    ERROR("Too many input: %d for 2 or 3.", nrhs);
+  if (nrhs == 2) {
+    connection = sessions()->get(sessions()->default_id());
+    key = prhs[0];
+    value = prhs[1];
   }
-  else if (mxIsNumeric(args[0])) {
-    connection_ = sessions()->get(mxGetScalar(args[0]));
-    key_ = args[1];
+  else if (mxIsNumeric(prhs[0])) {
+    connection = sessions()->get(mxGetScalar(prhs[0]));
+    key = prhs[1];
+    value = prhs[2];
   }
   else
     ERROR("Invalid input.");
+  if (!connection->put(key, value))
+    ERROR("Failed to put an entry: %s", connection->error_message());
 }
 
-void DelOperation::run(int nlhs, mxArray* plhs[]) {
+void DelOperation::run(int nlhs,
+                       mxArray* plhs[],
+                       int nrhs,
+                       const mxArray *prhs[]) {
+  const mxArray* key = NULL;
+  Database* connection = NULL;
   if (nlhs > 0)
     ERROR("Too many output: %d for 0.", nlhs);
-  if (!connection_->del(key_))
-    ERROR("Failed to delete an entry: %s", connection_->error_message());
-}
-
-void ExistsOperation::parse_internal(const vector<const mxArray*>& args) {
-  if (args.size() > 2)
-    ERROR("Too many input: %d for 1 or 2.", args.size());
-  if (args.size() == 1) {
-    connection_ = sessions()->get(sessions()->default_id());
-    key_ = args[0];
+  if (nrhs > 2)
+    ERROR("Too many input: %d for 1 or 2.", nrhs);
+  if (nrhs == 1) {
+    connection = sessions()->get(sessions()->default_id());
+    key = prhs[0];
   }
-  else if (mxIsNumeric(args[0])) {
-    connection_ = sessions()->get(mxGetScalar(args[0]));
-    key_ = args[1];
+  else if (mxIsNumeric(prhs[0])) {
+    connection = sessions()->get(mxGetScalar(prhs[0]));
+    key = prhs[1];
   }
   else
     ERROR("Invalid input.");
+  if (!connection->del(key))
+    ERROR("Failed to delete an entry: %s", connection->error_message());
 }
 
-void ExistsOperation::run(int nlhs, mxArray* plhs[]) {
+void ExistsOperation::run(int nlhs,
+                          mxArray* plhs[],
+                          int nrhs,
+                          const mxArray *prhs[]) {
+  const mxArray* key = NULL;
+  Database* connection = NULL;
   if (nlhs > 1)
     ERROR("Too many output: %d for 1.", nlhs);
-  if (!connection_->exists(key_, &plhs[0]))
-    ERROR("Failed to query a key: %s", connection_->error_message());
-}
-
-void StatOperation::parse_internal(const vector<const mxArray*>& args) {
-  if (args.size() > 1)
-    ERROR("Too many input: %d for 0 or 1.", args.size());
-  int id = 0;
-  if (args.empty())
-    id = sessions()->default_id();
-  else if (mxIsNumeric(args[0]))
-    id = mxGetScalar(args[0]);
+  if (nrhs > 2)
+    ERROR("Too many input: %d for 1 or 2.", nrhs);
+  if (nrhs == 1) {
+    connection = sessions()->get(sessions()->default_id());
+    key = prhs[0];
+  }
+  else if (mxIsNumeric(prhs[0])) {
+    connection = sessions()->get(mxGetScalar(prhs[0]));
+    key = prhs[1];
+  }
   else
     ERROR("Invalid input.");
-  connection_ = sessions()->get(id);
+  if (!connection->exists(key, &plhs[0]))
+    ERROR("Failed to query a key: %s", connection->error_message());
 }
 
-void StatOperation::run(int nlhs, mxArray* plhs[]) {
+void StatOperation::run(int nlhs,
+                        mxArray* plhs[],
+                        int nrhs,
+                        const mxArray *prhs[]) {
+  Database* connection = NULL;
   if (nlhs > 1)
     ERROR("Too many output: %d for 1.", nlhs);
-  if (!connection_->stat(&plhs[0]))
-    ERROR("Failed to query stat: %s", connection_->error_message());
-}
-
-void KeysOperation::parse_internal(const vector<const mxArray*>& args) {
-  if (args.size() > 1)
-    ERROR("Too many input: %d for 0 or 1.", args.size());
+  if (nrhs > 1)
+    ERROR("Too many input: %d for 0 or 1.", nrhs);
   int id = 0;
-  if (args.empty())
+  if (nrhs == 0)
     id = sessions()->default_id();
-  else if (mxIsNumeric(args[0]))
-    id = mxGetScalar(args[0]);
+  else if (mxIsNumeric(prhs[0]))
+    id = mxGetScalar(prhs[0]);
   else
     ERROR("Invalid input.");
-  connection_ = sessions()->get(id);
+  connection = sessions()->get(id);
+  if (!connection->stat(&plhs[0]))
+    ERROR("Failed to query stat: %s", connection->error_message());
 }
 
-void KeysOperation::run(int nlhs, mxArray* plhs[]) {
+void KeysOperation::run(int nlhs,
+                        mxArray* plhs[],
+                        int nrhs,
+                        const mxArray *prhs[]) {
+  Database* connection = NULL;
   if (nlhs > 1)
     ERROR("Too many output: %d for 1.", nlhs);
-  if (!connection_->keys(&plhs[0]))
-    ERROR("Failed to query keys: %s", connection_->error_message());
-}
-
-void ValuesOperation::parse_internal(const vector<const mxArray*>& args) {
-  if (args.size() > 1)
-    ERROR("Too many input: %d for 0 or 1.", args.size());
+  if (nrhs > 1)
+    ERROR("Too many input: %d for 0 or 1.", nrhs);
   int id = 0;
-  if (args.empty())
+  if (nrhs == 0)
     id = sessions()->default_id();
-  else if (mxIsNumeric(args[0]))
-    id = mxGetScalar(args[0]);
+  else if (mxIsNumeric(prhs[0]))
+    id = mxGetScalar(prhs[0]);
   else
     ERROR("Invalid input.");
-  connection_ = sessions()->get(id);
+  connection = sessions()->get(id);
+  if (!connection->keys(&plhs[0]))
+    ERROR("Failed to query keys: %s", connection->error_message());
 }
 
-void ValuesOperation::run(int nlhs, mxArray* plhs[]) {
+void ValuesOperation::run(int nlhs,
+                          mxArray* plhs[],
+                          int nrhs,
+                          const mxArray *prhs[]) {
+  Database* connection = NULL;
   if (nlhs > 1)
     ERROR("Too many output: %d for 1.", nlhs);
-  if (!connection_->values(&plhs[0]))
-    ERROR("Failed to query values: %s", connection_->error_message());
+  if (nrhs > 1)
+    ERROR("Too many input: %d for 0 or 1.", nrhs);
+  int id = 0;
+  if (nrhs == 0)
+    id = sessions()->default_id();
+  else if (mxIsNumeric(prhs[0]))
+    id = mxGetScalar(prhs[0]);
+  else
+    ERROR("Invalid input.");
+  connection = sessions()->get(id);
+  if (!connection->values(&plhs[0]))
+    ERROR("Failed to query values: %s", connection->error_message());
 }
 
 } // namespace dbmex

@@ -172,18 +172,19 @@ public:
   // use.
   static Operation* parse(int nrhs, const mxArray* prhs[]);
   // Execute the operation.
-  virtual void run(int nlhs, mxArray* plhs[]) = 0;
+  virtual void run(int nlhs,
+                   mxArray *plhs[],
+                   int nrhs,
+                   const mxArray *prhs[]) = 0;
 
 protected:
   // Default constructor is prohibited. Use parse() method.
   Operation() {}
-  // Parser implementation.
-  virtual void parse_internal(const vector<const mxArray*>& args) = 0;
   // Accessor for the sessions.
   static Sessions* sessions() { return &sessions_; }
 
 private:
-  // Database session sessions.
+  // Database sessions.
   static Sessions sessions_;
 };
 
@@ -191,147 +192,63 @@ private:
 class OpenOperation : public Operation {
 public:
   // Open a connection.
-  virtual void run(int nlhs, mxArray* plhs[]);
-
-protected:
-  // Parse rhs arguments.
-  virtual void parse_internal(const vector<const mxArray*>& args);
-
-private:
-  // File name.
-  string filename_;
-  // Environment directory.
-  string home_dir_;
+  virtual void run(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]);
 };
 
 // Close operation class.
 class CloseOperation : public Operation {
 public:
   // Close the connection.
-  virtual void run(int nlhs, mxArray* plhs[]);
-
-protected:
-  // Parse rhs arguments.
-  virtual void parse_internal(const vector<const mxArray*>& args);
-
-private:
-  // Session id.
-  int id_;
+  virtual void run(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]);
 };
 
 // Get operation class.
 class GetOperation : public Operation {
 public:
   // Execute a get operation.
-  virtual void run(int nlhs, mxArray* plhs[]);
-
-protected:
-  // Parse rhs arguments.
-  virtual void parse_internal(const vector<const mxArray*>& args);
-
-private:
-  // Database connection.
-  Database* connection_;
-  // Input key.
-  const mxArray* key_;
+  virtual void run(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]);
 };
 
 // Put operation class.
 class PutOperation : public Operation {
 public:
-  // Execute a set operation.
-  virtual void run(int nlhs, mxArray* plhs[]);
-
-protected:
-  // Parse rhs arguments.
-  virtual void parse_internal(const vector<const mxArray*>& args);
-
-private:
-  // Database connection.
-  Database* connection_;
-  // Input key.
-  const mxArray* key_;
-  // Input value.
-  const mxArray* value_;
+  // Execute a put operation.
+  virtual void run(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]);
 };
 
 // Del operation class.
 class DelOperation : public Operation {
 public:
   // Execute a del operation.
-  virtual void run(int nlhs, mxArray* plhs[]);
-
-protected:
-  // Parse rhs arguments.
-  virtual void parse_internal(const vector<const mxArray*>& args);
-
-private:
-  // Database connection.
-  Database* connection_;
-  // Input key.
-  const mxArray* key_;
+  virtual void run(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]);
 };
 
 // Exists operation class.
 class ExistsOperation : public Operation {
 public:
   // Execute an exists operation.
-  virtual void run(int nlhs, mxArray* plhs[]);
-
-protected:
-  // Parse rhs arguments.
-  virtual void parse_internal(const vector<const mxArray*>& args);
-
-private:
-  // Database connection.
-  Database* connection_;
-  // Input key.
-  const mxArray* key_;
+  virtual void run(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]);
 };
 
 // Stat operation class.
 class StatOperation : public Operation {
 public:
   // Execute an stat operation.
-  virtual void run(int nlhs, mxArray* plhs[]);
-
-protected:
-  // Parse rhs arguments.
-  virtual void parse_internal(const vector<const mxArray*>& args);
-
-private:
-  // Database connection.
-  Database* connection_;
+  virtual void run(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]);
 };
 
 // Keys operation class.
 class KeysOperation : public Operation {
 public:
   // Execute a keys operation.
-  virtual void run(int nlhs, mxArray* plhs[]);
-
-protected:
-  // Parse rhs arguments.
-  virtual void parse_internal(const vector<const mxArray*>& args);
-
-private:
-  // Database connection.
-  Database* connection_;
+  virtual void run(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]);
 };
 
 // Values operation class.
 class ValuesOperation : public Operation {
 public:
   // Execute a values operation.
-  virtual void run(int nlhs, mxArray* plhs[]);
-
-protected:
-  // Parse rhs arguments.
-  virtual void parse_internal(const vector<const mxArray*>& args);
-
-private:
-  // Database connection.
-  Database* connection_;
+  virtual void run(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]);
 };
 
 } // namespace dbmex

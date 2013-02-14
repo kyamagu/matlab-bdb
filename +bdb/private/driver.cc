@@ -8,5 +8,5 @@ using bdbmex::Operation;
 // Entry point to the mex function.
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
   auto_ptr<Operation> operation(Operation::parse(nrhs, prhs));
-  operation->run(nlhs, plhs);
+  operation->run(nlhs, plhs, nrhs - 1, prhs + 1);
 }
