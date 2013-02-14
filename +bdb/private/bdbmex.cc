@@ -320,224 +320,38 @@ Database* Sessions::get(int id) {
 
 Sessions Operation::sessions_ = Sessions();
 
-Operation* Operation::parse(int nrhs, const mxArray *prhs[]) {
+Operation* OperationFactory::parse(int nrhs, const mxArray *prhs[]) {
   if (nrhs < 1 || !mxIsChar(prhs[0]))
     ERROR("Invalid argument: missing operation.");
-  auto_ptr<Operation> operation(NULL);
   string operation_name(mxGetChars(prhs[0]),
                         mxGetChars(prhs[0]) + mxGetNumberOfElements(prhs[0]));
-  if (operation_name == "open")
-    operation.reset(new OpenOperation());
-  else if (operation_name == "close")
-    operation.reset(new CloseOperation());
-  else if (operation_name == "get")
-    operation.reset(new GetOperation());
-  else if (operation_name == "put")
-    operation.reset(new PutOperation());
-  else if (operation_name == "del")
-    operation.reset(new DelOperation());
-  else if (operation_name == "exists")
-    operation.reset(new ExistsOperation());
-  else if (operation_name == "stat")
-    operation.reset(new StatOperation());
-  else if (operation_name == "keys")
-    operation.reset(new KeysOperation());
-  else if (operation_name == "values")
-    operation.reset(new ValuesOperation());
+  Operation* operation = OperationFactory::create(operation_name);
+  if (operation == NULL)
+    ERROR("Invalid operation: %s", operation_name.c_str());
+  return operation;
+}
+
+void OperationFactory::define(const string& alias,
+                              OperationCreator* creator) {
+  get_registry()->insert(make_pair(alias, creator));
+}
+
+Operation* OperationFactory::create(const string& alias) {
+  map<string, OperationCreator*>::const_iterator it =
+      get_registry()->find(alias);
+  if (it == get_registry()->end())
+    return static_cast<Operation*>(NULL);
   else
-    ERROR("Invalid operation: %d", operation_name.c_str());
-  return operation.release();
+    return it->second->create();
 }
 
-void OpenOperation::run(int nlhs,
-                        mxArray* plhs[],
-                        int nrhs,
-                        const mxArray *prhs[]) {
-  if (nlhs > 1)
-    ERROR("Too many output: %d for 1.", nlhs);
-  if (nrhs < 1 || nrhs > 2)
-    ERROR("Wrong number of arguments: %d for 1 or 2.", nrhs);
-  if (!mxIsChar(prhs[0]) || (nrhs == 2 && !mxIsChar(prhs[1])))
-    ERROR("Invalid filename is given.");
-  string filename(mxGetChars(prhs[0]),
-                  mxGetChars(prhs[0]) + mxGetNumberOfElements(prhs[0]));
-  string home_dir((nrhs== 1) ? "" : string(mxGetChars(prhs[1]),
-      mxGetChars(prhs[1]) + mxGetNumberOfElements(prhs[1])));
-  plhs[0] = mxCreateDoubleScalar(sessions()->open(filename, home_dir));
+map<string, OperationCreator*>* OperationFactory::get_registry() {
+  static map<string, OperationCreator*> registry;
+  return &registry;
 }
 
-void CloseOperation::run(int nlhs,
-                         mxArray* plhs[],
-                         int nrhs,
-                         const mxArray *prhs[]) {
-  if (nlhs)
-    ERROR("Too many output: %d for 0.", nlhs);
-  if (nrhs > 1 || (nrhs == 1 && !mxIsNumeric(prhs[0])))
-    ERROR("Invalid input.");
-  int id = (nrhs == 0) ? sessions()->default_id() : mxGetScalar(prhs[0]);
-  sessions()->close(id);
-}
-
-void GetOperation::run(int nlhs,
-                       mxArray* plhs[],
-                       int nrhs,
-                       const mxArray *prhs[]) {
-  const mxArray* key = NULL;
-  Database* connection = NULL;
-  if (nlhs > 1)
-    ERROR("Too many output: %d for 1.", nlhs);
-  if (nrhs > 2)
-    ERROR("Too many input: %d for 1 or 2.", nrhs);
-  if (nrhs == 1) {
-    connection = sessions()->get(sessions()->default_id());
-    key = prhs[0];
-  }
-  else if (mxIsNumeric(prhs[0])) {
-    connection = sessions()->get(mxGetScalar(prhs[0]));
-    key = prhs[1];
-  }
-  else
-    ERROR("Invalid input.");
-  if (!connection->get(key, &plhs[0]))
-    ERROR("Failed to get an entry: %s", connection->error_message());
-}
-
-void PutOperation::run(int nlhs,
-                       mxArray* plhs[],
-                       int nrhs,
-                       const mxArray *prhs[]) {
-  const mxArray* key = NULL;
-  const mxArray* value = NULL;
-  Database* connection = NULL;
-  if (nlhs > 0)
-    ERROR("Too many output: %d for 1.", nlhs);
-  if (nrhs > 3)
-    ERROR("Too many input: %d for 2 or 3.", nrhs);
-  if (nrhs == 2) {
-    connection = sessions()->get(sessions()->default_id());
-    key = prhs[0];
-    value = prhs[1];
-  }
-  else if (mxIsNumeric(prhs[0])) {
-    connection = sessions()->get(mxGetScalar(prhs[0]));
-    key = prhs[1];
-    value = prhs[2];
-  }
-  else
-    ERROR("Invalid input.");
-  if (!connection->put(key, value))
-    ERROR("Failed to put an entry: %s", connection->error_message());
-}
-
-void DelOperation::run(int nlhs,
-                       mxArray* plhs[],
-                       int nrhs,
-                       const mxArray *prhs[]) {
-  const mxArray* key = NULL;
-  Database* connection = NULL;
-  if (nlhs > 0)
-    ERROR("Too many output: %d for 0.", nlhs);
-  if (nrhs > 2)
-    ERROR("Too many input: %d for 1 or 2.", nrhs);
-  if (nrhs == 1) {
-    connection = sessions()->get(sessions()->default_id());
-    key = prhs[0];
-  }
-  else if (mxIsNumeric(prhs[0])) {
-    connection = sessions()->get(mxGetScalar(prhs[0]));
-    key = prhs[1];
-  }
-  else
-    ERROR("Invalid input.");
-  if (!connection->del(key))
-    ERROR("Failed to delete an entry: %s", connection->error_message());
-}
-
-void ExistsOperation::run(int nlhs,
-                          mxArray* plhs[],
-                          int nrhs,
-                          const mxArray *prhs[]) {
-  const mxArray* key = NULL;
-  Database* connection = NULL;
-  if (nlhs > 1)
-    ERROR("Too many output: %d for 1.", nlhs);
-  if (nrhs > 2)
-    ERROR("Too many input: %d for 1 or 2.", nrhs);
-  if (nrhs == 1) {
-    connection = sessions()->get(sessions()->default_id());
-    key = prhs[0];
-  }
-  else if (mxIsNumeric(prhs[0])) {
-    connection = sessions()->get(mxGetScalar(prhs[0]));
-    key = prhs[1];
-  }
-  else
-    ERROR("Invalid input.");
-  if (!connection->exists(key, &plhs[0]))
-    ERROR("Failed to query a key: %s", connection->error_message());
-}
-
-void StatOperation::run(int nlhs,
-                        mxArray* plhs[],
-                        int nrhs,
-                        const mxArray *prhs[]) {
-  Database* connection = NULL;
-  if (nlhs > 1)
-    ERROR("Too many output: %d for 1.", nlhs);
-  if (nrhs > 1)
-    ERROR("Too many input: %d for 0 or 1.", nrhs);
-  int id = 0;
-  if (nrhs == 0)
-    id = sessions()->default_id();
-  else if (mxIsNumeric(prhs[0]))
-    id = mxGetScalar(prhs[0]);
-  else
-    ERROR("Invalid input.");
-  connection = sessions()->get(id);
-  if (!connection->stat(&plhs[0]))
-    ERROR("Failed to query stat: %s", connection->error_message());
-}
-
-void KeysOperation::run(int nlhs,
-                        mxArray* plhs[],
-                        int nrhs,
-                        const mxArray *prhs[]) {
-  Database* connection = NULL;
-  if (nlhs > 1)
-    ERROR("Too many output: %d for 1.", nlhs);
-  if (nrhs > 1)
-    ERROR("Too many input: %d for 0 or 1.", nrhs);
-  int id = 0;
-  if (nrhs == 0)
-    id = sessions()->default_id();
-  else if (mxIsNumeric(prhs[0]))
-    id = mxGetScalar(prhs[0]);
-  else
-    ERROR("Invalid input.");
-  connection = sessions()->get(id);
-  if (!connection->keys(&plhs[0]))
-    ERROR("Failed to query keys: %s", connection->error_message());
-}
-
-void ValuesOperation::run(int nlhs,
-                          mxArray* plhs[],
-                          int nrhs,
-                          const mxArray *prhs[]) {
-  Database* connection = NULL;
-  if (nlhs > 1)
-    ERROR("Too many output: %d for 1.", nlhs);
-  if (nrhs > 1)
-    ERROR("Too many input: %d for 0 or 1.", nrhs);
-  int id = 0;
-  if (nrhs == 0)
-    id = sessions()->default_id();
-  else if (mxIsNumeric(prhs[0]))
-    id = mxGetScalar(prhs[0]);
-  else
-    ERROR("Invalid input.");
-  connection = sessions()->get(id);
-  if (!connection->values(&plhs[0]))
-    ERROR("Failed to query values: %s", connection->error_message());
+OperationCreator::OperationCreator(const string& name) {
+  OperationFactory::define(name, this);
 }
 
 } // namespace dbmex

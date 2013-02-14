@@ -16,7 +16,7 @@
 using namespace std;
 
 // Alias for the mex error function.
-#define ERROR(...) mexErrMsgIdAndTxt("db:error", __VA_ARGS__)
+#define ERROR(...) mexErrMsgIdAndTxt("bdb:error", __VA_ARGS__)
 
 // Hidden MEX API.
 EXTERN_C mxArray* mxSerialize(const mxArray*);
@@ -158,24 +158,19 @@ private:
 };
 
 // Abstract operation class. Child class must implement run() method.
-// The static method parse() is a factory method to create an instance.
 //
-//    auto_ptr<Operation> operation(Operation::parse(nrhs, prhs));
-//    operation->run(nlhs, plhs);
+//    auto_ptr<Operation> operation(OperationFactory::parse(nrhs, prhs));
+//    operation->run(nlhs, plhs, nrhs - 1, prhs + 1);
 //
 class Operation {
 public:
   // Destructor.
   virtual ~Operation() {}
-  // Factory method for operation. Takes rhs of the mexFunction and return
-  // a new operation object. Caller is responsible for the destruction after
-  // use.
-  static Operation* parse(int nrhs, const mxArray* prhs[]);
   // Execute the operation.
-  virtual void run(int nlhs,
-                   mxArray *plhs[],
-                   int nrhs,
-                   const mxArray *prhs[]) = 0;
+  virtual void operator()(int nlhs,
+                          mxArray *plhs[],
+                          int nrhs,
+                          const mxArray *prhs[]) = 0;
 
 protected:
   // Default constructor is prohibited. Use parse() method.
@@ -188,69 +183,83 @@ private:
   static Sessions sessions_;
 };
 
-// Open operation class.
-class OpenOperation : public Operation {
+// Base class for operation creators.
+class OperationCreator {
 public:
-  // Open a connection.
-  virtual void run(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]);
+  // Register an operation in the constructor.
+  OperationCreator(const string& name);
+  // Implementation must return a new instance of the operation.
+  virtual Operation* create() = 0;
 };
 
-// Close operation class.
-class CloseOperation : public Operation {
+// Implementation of the operation creator to be used as composition in an
+// Operator class.
+template <class OperationClass>
+class OperationCreatorImpl : public OperationCreator {
 public:
-  // Close the connection.
-  virtual void run(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]);
+  OperationCreatorImpl(const string& name) : OperationCreator(name) {}
+  virtual Operation* create() { return new OperationClass; }
 };
 
-// Get operation class.
-class GetOperation : public Operation {
+// Factory class for operations.
+class OperationFactory {
 public:
-  // Execute a get operation.
-  virtual void run(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]);
+  // Register a new creator.
+  static void define(const string& name, OperationCreator* creator);
+  // Create a new instance of the registered operation.
+  static Operation* create(const string& name);
+  // Create a new instance of the registered creator. Takes the rhs of the
+  // mexFunction and return a new operation object. Caller is responsible for
+  // destruction after use.
+  static Operation* parse(int nrhs, const mxArray* prhs[]);
+
+private:
+  // Obtain a pointer to the registration table.
+  static map<string, OperationCreator*>* get_registry();
 };
 
-// Put operation class.
-class PutOperation : public Operation {
-public:
-  // Execute a put operation.
-  virtual void run(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]);
+// Definition of an API function. Use with DEFINE_OPERATION. Example:
+//
+// DECLARE_OPERATION(myfunc);
+//
+#define DECLARE_OPERATION(name) \
+class Operation_##name : public Operation { \
+public: \
+  virtual void operator()(int nlhs, \
+                          mxArray *plhs[], \
+                          int nrhs, \
+                          const mxArray *prhs[]); \
+private: \
+  static const OperationCreatorImpl<Operation_##name> creator_; \
 };
 
-// Del operation class.
-class DelOperation : public Operation {
-public:
-  // Execute a del operation.
-  virtual void run(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]);
-};
+// Declaration of an API function. Example:
+//
+// DECLARE_OPERATION(myfunc) {
+//   if (nrhs != 1 || nlhs > 1)
+//     ERROR("Wrong number of arguments.");
+//   ...
+// }
+//
+#define DEFINE_OPERATION(name) \
+const OperationCreatorImpl<Operation_##name> \
+    Operation_##name::creator_(#name); \
+void Operation_##name::operator() (int nlhs, \
+                                   mxArray *plhs[], \
+                                   int nrhs, \
+                                   const mxArray *prhs[])
 
-// Exists operation class.
-class ExistsOperation : public Operation {
-public:
-  // Execute an exists operation.
-  virtual void run(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]);
-};
+// API declarations.
+DECLARE_OPERATION(open);
+DECLARE_OPERATION(close);
+DECLARE_OPERATION(get);
+DECLARE_OPERATION(put);
+DECLARE_OPERATION(delete);
+DECLARE_OPERATION(exists);
+DECLARE_OPERATION(stat);
+DECLARE_OPERATION(keys);
+DECLARE_OPERATION(values);
 
-// Stat operation class.
-class StatOperation : public Operation {
-public:
-  // Execute an stat operation.
-  virtual void run(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]);
-};
-
-// Keys operation class.
-class KeysOperation : public Operation {
-public:
-  // Execute a keys operation.
-  virtual void run(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]);
-};
-
-// Values operation class.
-class ValuesOperation : public Operation {
-public:
-  // Execute a values operation.
-  virtual void run(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]);
-};
-
-} // namespace dbmex
+} // namespace bdbmex
 
 #endif // __BDBMEX_H__
