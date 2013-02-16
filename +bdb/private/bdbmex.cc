@@ -5,6 +5,9 @@
 #include "libbdbmex.h"
 #include "mex_helpers.h"
 
+using bdbmex::Sessions;
+using bdbmex::Database;
+
 namespace {
 
 // Convert mxArray to string.
@@ -12,10 +15,6 @@ string StringFromMxArray(const mxArray* array) {
   return string(mxGetChars(array),
                 mxGetChars(array) + mxGetNumberOfElements(array));
 }
-
-}
-
-namespace bdbmex {
 
 MEX_API(open) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
   if (nlhs > 1)
@@ -179,4 +178,4 @@ MEX_API(values) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     ERROR("Failed to query values: %s", connection->error_message());
 }
 
-} // namespace bdbmex
+} // namespace
