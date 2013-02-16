@@ -134,6 +134,23 @@ void Record::decompress_mxarray(const vector<uint8_t>& binary,
 
 #endif // ENABLE_ZLIB
 
+Cursor::~Cursor() {
+  if (cursor_)
+    cursor_->close(cursor_);
+}
+
+int Cursor::open(DB* database_) {
+  return database_->cursor(database_, NULL, &cursor_, 0);
+}
+
+int Cursor::next(Record* record) {
+  return cursor_->get(cursor_, record->key(), record->value(), DB_NEXT);
+}
+
+int Cursor::prev(Record* record) {
+  return cursor_->get(cursor_, record->key(), record->value(), DB_PREV);
+}
+
 Database::Database() : code_(0), database_(NULL), environment_(NULL) {}
 
 Database::~Database() {
@@ -185,11 +202,11 @@ bool Database::close() {
   return ok();
 }
 
-int Database::error_code() {
+int Database::error_code() const {
   return code_;
 }
 
-const char* Database::error_message() {
+const char* Database::error_message() const {
   return db_strerror(code_);
 }
 
@@ -225,6 +242,8 @@ bool Database::exists(const mxArray* key, mxArray** value) {
 bool Database::stat(mxArray** output) {
   DB_BTREE_STAT* stats = NULL;
   stats = static_cast<DB_BTREE_STAT*>(malloc(sizeof(DB_BTREE_STAT)));
+  if (stats == NULL)
+    return false;
   const char* kFields[] = {"magic", "minkey", "ndata", "nkeys",
       "pagecnt", "pagesize", "re_len", "re_pad", "version"};
   code_ = database_->stat(database_, NULL, &stats, 0);
@@ -246,6 +265,8 @@ bool Database::keys(mxArray** output) {
   // Count the number of keys.
   DB_BTREE_STAT* stats = NULL;
   stats = static_cast<DB_BTREE_STAT*>(malloc(sizeof(DB_BTREE_STAT)));
+  if (stats == NULL)
+    return false;
   code_ = database_->stat(database_, NULL, &stats, 0);
   uint32_t num_keys = stats->bt_nkeys;
   free(stats);
@@ -271,6 +292,8 @@ bool Database::values(mxArray** output) {
   // Count the number of values.
   DB_BTREE_STAT* stats = NULL;
   stats = static_cast<DB_BTREE_STAT*>(malloc(sizeof(DB_BTREE_STAT)));
+  if (stats == NULL)
+    return false;
   code_ = database_->stat(database_, NULL, &stats, 0);
   uint32_t num_values = stats->bt_ndata;
   free(stats);

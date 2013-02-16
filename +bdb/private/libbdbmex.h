@@ -66,23 +66,17 @@ private:
 // Database cursor.
 class Cursor {
 public:
+  // Create an empty cursor.
   Cursor() : cursor_(NULL) {}
-  ~Cursor() {
-    if (cursor_)
-      cursor_->close(cursor_);
-  }
+  // Destructor.
+  ~Cursor();
   // Open a new cursor.
-  int open(DB* database_) {
-    return database_->cursor(database_, NULL, &cursor_, 0);
-  }
+  int open(DB* database_);
   // Go to the next record.
-  int next(Record* record) {
-    return cursor_->get(cursor_, record->key(), record->value(), DB_NEXT);
-  }
+  int next(Record* record);
   // Go to the previous record.
-  int prev(Record* record) {
-    return cursor_->get(cursor_, record->key(), record->value(), DB_PREV);
-  }
+  int prev(Record* record);
+
 private:
   // Cursor pointer.
   DBC* cursor_;
@@ -91,16 +85,18 @@ private:
 // Database connection.
 class Database {
 public:
+  // Create an empty database connection.
   Database();
+  // Destructor.
   ~Database();
   // Open a connection. Optionally, it takes a path to the environment dir.
   bool open(const string& filename, const string& home_dir = "");
   // Return the last error code.
-  int error_code();
+  int error_code() const;
   // Return the last error message.
-  const char* error_message();
+  const char* error_message() const;
   // Return if the status is okay.
-  bool ok() { return code_ == 0; }
+  bool ok() const { return code_ == 0; }
   // Get an entry.
   bool get(const mxArray* key, mxArray** value);
   // Put an entry.
@@ -143,7 +139,7 @@ public:
   static Database* get(int id);
 
 private:
-  // Session instantiation is prohibited.
+  // Sessions instantiation is prohibited.
   Sessions();
   // Destructor is prohibited.
   ~Sessions();

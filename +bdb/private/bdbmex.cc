@@ -38,12 +38,12 @@ MEX_API(close) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 }
 
 MEX_API(get) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
-  const mxArray* key = NULL;
-  Database* connection = NULL;
   if (nlhs > 1)
     ERROR("Too many output: %d for 1.", nlhs);
   if (nrhs > 2)
     ERROR("Too many input: %d for 1 or 2.", nrhs);
+  Database* connection = NULL;
+  const mxArray* key = NULL;
   if (nrhs == 1) {
     connection = Sessions::get(Sessions::default_id());
     key = prhs[0];
@@ -59,13 +59,13 @@ MEX_API(get) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 }
 
 MEX_API(put) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
-  const mxArray* key = NULL;
-  const mxArray* value = NULL;
-  Database* connection = NULL;
   if (nlhs > 0)
     ERROR("Too many output: %d for 1.", nlhs);
   if (nrhs > 3)
     ERROR("Too many input: %d for 2 or 3.", nrhs);
+  Database* connection = NULL;
+  const mxArray* key = NULL;
+  const mxArray* value = NULL;
   if (nrhs == 2) {
     connection = Sessions::get(Sessions::default_id());
     key = prhs[0];
@@ -83,12 +83,12 @@ MEX_API(put) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 }
 
 MEX_API(delete) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
-  const mxArray* key = NULL;
-  Database* connection = NULL;
   if (nlhs > 0)
     ERROR("Too many output: %d for 0.", nlhs);
   if (nrhs > 2)
     ERROR("Too many input: %d for 1 or 2.", nrhs);
+  Database* connection = NULL;
+  const mxArray* key = NULL;
   if (nrhs == 1) {
     connection = Sessions::get(Sessions::default_id());
     key = prhs[0];
@@ -104,12 +104,12 @@ MEX_API(delete) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 }
 
 MEX_API(exists) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
-  const mxArray* key = NULL;
-  Database* connection = NULL;
   if (nlhs > 1)
     ERROR("Too many output: %d for 1.", nlhs);
   if (nrhs > 2)
     ERROR("Too many input: %d for 1 or 2.", nrhs);
+  Database* connection = NULL;
+  const mxArray* key = NULL;
   if (nrhs == 1) {
     connection = Sessions::get(Sessions::default_id());
     key = prhs[0];
@@ -125,55 +125,49 @@ MEX_API(exists) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 }
 
 MEX_API(stat) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
-  Database* connection = NULL;
   if (nlhs > 1)
     ERROR("Too many output: %d for 1.", nlhs);
   if (nrhs > 1)
     ERROR("Too many input: %d for 0 or 1.", nrhs);
-  int id = 0;
+  Database* connection = NULL;
   if (nrhs == 0)
-    id = Sessions::default_id();
+    connection = Sessions::get(Sessions::default_id());
   else if (mxIsNumeric(prhs[0]))
-    id = mxGetScalar(prhs[0]);
+    connection = Sessions::get(mxGetScalar(prhs[0]));
   else
     ERROR("Invalid input.");
-  connection = Sessions::get(id);
   if (!connection->stat(&plhs[0]))
     ERROR("Failed to query stat: %s", connection->error_message());
 }
 
 MEX_API(keys) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
-  Database* connection = NULL;
   if (nlhs > 1)
     ERROR("Too many output: %d for 1.", nlhs);
   if (nrhs > 1)
     ERROR("Too many input: %d for 0 or 1.", nrhs);
-  int id = 0;
+  Database* connection = NULL;
   if (nrhs == 0)
-    id = Sessions::default_id();
+    connection = Sessions::get(Sessions::default_id());
   else if (mxIsNumeric(prhs[0]))
-    id = mxGetScalar(prhs[0]);
+    connection = Sessions::get(mxGetScalar(prhs[0]));
   else
     ERROR("Invalid input.");
-  connection = Sessions::get(id);
   if (!connection->keys(&plhs[0]))
     ERROR("Failed to query keys: %s", connection->error_message());
 }
 
 MEX_API(values) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
-  Database* connection = NULL;
   if (nlhs > 1)
     ERROR("Too many output: %d for 1.", nlhs);
   if (nrhs > 1)
     ERROR("Too many input: %d for 0 or 1.", nrhs);
-  int id = 0;
+  Database* connection = NULL;
   if (nrhs == 0)
-    id = Sessions::default_id();
+    connection = Sessions::get(Sessions::default_id());
   else if (mxIsNumeric(prhs[0]))
-    id = mxGetScalar(prhs[0]);
+    connection = Sessions::get(mxGetScalar(prhs[0]));
   else
     ERROR("Invalid input.");
-  connection = Sessions::get(id);
   if (!connection->values(&plhs[0]))
     ERROR("Failed to query values: %s", connection->error_message());
 }
