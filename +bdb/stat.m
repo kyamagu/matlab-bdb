@@ -10,5 +10,5 @@ function result = stat(varargin)
 % The result is a struct array.
 %
 % See also bdb.open bdb.close
-  result = driver_(mfilename, varargin{:});
+  result = bdbmex_(mfilename, varargin{:});
 end

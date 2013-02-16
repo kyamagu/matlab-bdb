@@ -10,5 +10,5 @@ function value = exists(varargin)
 % The key must be an ordinary object.
 %
 % See also bdb.get
-  value = driver_(mfilename, varargin{:});
+  value = bdbmex_(mfilename, varargin{:});
 end

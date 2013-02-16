@@ -10,5 +10,5 @@ function value = get(varargin)
 % The key must be an ordinary object.
 %
 % See also bdb.put bdb.delete
-  value = driver_(mfilename, varargin{:});
+  value = bdbmex_(mfilename, varargin{:});
 end
