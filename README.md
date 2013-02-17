@@ -46,7 +46,7 @@ Example: build with the default library:
 
 Example: build with additional path:
 
-    >> bdb.make('-I/opt/local/include/db53','-L/opt/local/lib/db53')
+    >> bdb.make('-I/opt/local/include/db53','-L/opt/local/lib/db53');
 
 API
 ---
