@@ -40,11 +40,11 @@ Build
 The `bdb.make` function builds necessary dependent files. Check `bdb.make` for
 the detail of compile-time options.
 
-'''Building with the default'''
+Example: build with the default library:
 
     >> bdb.make;
 
-'''Building with additional path'''
+Example: build with additional path:
 
     >> bdb.make('-I/opt/local/include/db53','-L/opt/local/lib/db53')
 
@@ -109,7 +109,7 @@ general, when data contain regular patterns, such as when data are all-zero,
 compression makes the biggest effect. However, if data are close to random,
 there is no advantage in the resulting storage size.
 
-### Limited support
+### Undocumented functions
 
 The implementation uses undocumented matlab mex functions `mxSerialize` and
 `mxDeserialize`. The behavior of these functions are not guaranteed to work in
