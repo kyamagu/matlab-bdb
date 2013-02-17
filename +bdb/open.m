@@ -1,5 +1,5 @@
 function id = open(filename, varargin)
-%BDB.OPEN Open a Berkeley DB database.
+%OPEN Open a Berkeley DB database.
 %
 %    id = bdb.open(filename)
 %    id = bdb.open(filename, home_dir)
@@ -9,5 +9,5 @@ function id = open(filename, varargin)
 %
 % See also bdb.close bdb.put bdb.get bdb.delete bdb.stat bdb.keys
 % bdb.values
-  id = bdbmex_(mfilename, filename, varargin{:});
+  id = mex_function_(mfilename, filename, varargin{:});
 end

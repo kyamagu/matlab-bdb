@@ -1,5 +1,5 @@
 function put(varargin)
-%BDB.PUT Store a key-value pair.
+%PUT Store a key-value pair.
 %
 %    bdb.put(key, value)
 %    bdb.put(id, key, value)
@@ -11,5 +11,5 @@ function put(varargin)
 % entry for the given key, the entry will be overwritten.
 %
 % See also bdb.get bdb.delete
-  bdbmex_(mfilename, varargin{:});
+  mex_function_(mfilename, varargin{:});
 end

@@ -1,5 +1,5 @@
 function value = get(varargin)
-%BDB.GET Retrieve a value given key.
+%GET Retrieve a value given key.
 %
 %    value = bdb.get(key)
 %    value = bdb.get(id, key)
@@ -10,5 +10,5 @@ function value = get(varargin)
 % The key must be an ordinary object.
 %
 % See also bdb.put bdb.delete
-  value = bdbmex_(mfilename, varargin{:});
+  value = mex_function_(mfilename, varargin{:});
 end

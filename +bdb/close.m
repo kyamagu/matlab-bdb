@@ -1,5 +1,5 @@
 function close(varargin)
-%BDB.CLOSE Close the database.
+%CLOSE Close the database.
 %
 %    bdb.close
 %    bdb.close(id)
@@ -8,5 +8,5 @@ function close(varargin)
 % omitted, the default session is closed.
 %
 % See also bdb.open
-  bdbmex_(mfilename, varargin{:});
+  mex_function_(mfilename, varargin{:});
 end

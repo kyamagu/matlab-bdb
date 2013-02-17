@@ -1,5 +1,5 @@
 function results = keys(varargin)
-%BDB.KEYS Return a list of keys in the database.
+%KEYS Return a list of keys in the database.
 %
 %    results = bdb.keys()
 %    results = bdb.keys(id)
@@ -10,5 +10,5 @@ function results = keys(varargin)
 % The results are returned as a cell array.
 %
 % See also bdb.values
-  results = bdbmex_(mfilename, varargin{:});
+  results = mex_function_(mfilename, varargin{:});
 end

@@ -1,8 +1,8 @@
-// MEX C++ helper library.
+// MEX function helper library.
 //
 // Kota Yamaguchi 2013 <kyamagu@cs.stonybrook.edu>
 
-#include "mex_helpers.h"
+#include "function.h"
 #include <memory>
 
 namespace mex {
@@ -30,9 +30,11 @@ OperationCreator::OperationCreator(const std::string& name) {
   OperationFactory::define(name, this);
 }
 
+OperationCreator::~OperationCreator() {}
+
 } // namespace mex
 
-// Main entry of the mex function. It 
+// Main entry of the mex function.
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
   if (nrhs < 1 || !mxIsChar(prhs[0]))
     mexErrMsgIdAndTxt("mex:argumentError",

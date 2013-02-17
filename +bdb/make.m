@@ -1,5 +1,5 @@
 function make(varargin)
-%BDB.MAKE Build a driver mex file.
+%MAKE Build a driver mex file.
 %
 %    bdb.make(['optionName', optionValue,] [compiler_flags])
 %
@@ -48,8 +48,8 @@ function make(varargin)
     package_dir = fileparts(mfilename('fullpath'));
     [config, compiler_flags] = parse_options(varargin{:});
     cmd = sprintf(...
-        'mex -largeArrayDims%s -outdir %s -output bdbmex_ %s %s%s',...
-        source_files(package_dir),...
+        'mex -largeArrayDims%s -outdir %s -output mex_function_ %s %s%s',...
+        find_source_files(fullfile(package_dir, 'private')),...
         fullfile(package_dir, 'private'),...
         config.db_path,...
         repmat(['-DENABLE_ZLIB ', config.zlib_path], 1, config.enable_zlib),...
@@ -85,12 +85,17 @@ function [config, compiler_flags] = parse_options(varargin)
 
 end
 
-function files = source_files(package_dir)
+function files = find_source_files(root_dir)
 %SOURCE_FILES List of source files in a string.
 
-    files = dir(fullfile(package_dir, 'private', '*.cc'));
-    files = cellfun(@(x)fullfile(package_dir, 'private', x), {files.name},...
-                    'UniformOutput', false);
-    files = sprintf(' %s', files{:});
+    files = dir(root_dir);
+    srcs = files(cellfun(@(x)~isempty(x), ...
+                 regexp({files.name},'\S+\.(c)|(cc)|(cpp)|(C)')));
+    srcs = cellfun(@(x)fullfile(root_dir, x), {srcs.name},...
+                   'UniformOutput', false);
+    subdirs = files([files.isdir] & cellfun(@(x)x(1)~='.',{files.name}));
+    subdir_srcs = cellfun(@(x)find_source_files(fullfile(root_dir,x)),...
+                          {subdirs.name}, 'UniformOutput', false);
+    files = [sprintf(' %s', srcs{:}), subdir_srcs{:}];
 
 end

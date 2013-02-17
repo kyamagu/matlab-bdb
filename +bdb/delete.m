@@ -1,5 +1,5 @@
 function delete(varargin)
-%BDB.DELETE Delete an entry for a key.
+%DELETE Delete an entry for a key.
 %
 %    bdb.delete(key)
 %    bdb.delete(id, key)
@@ -10,5 +10,5 @@ function delete(varargin)
 % The key must be an ordinary object.
 %
 % See also bdb.put bdb.get
-  bdbmex_(mfilename, varargin{:});
+  mex_function_(mfilename, varargin{:});
 end

@@ -1,5 +1,5 @@
 function value = exists(varargin)
-%BDB.EXISTS Check if an entry exists.
+%EXISTS Check if an entry exists.
 %
 %    flag = bdb.exists(key)
 %    flag = bdb.exists(id, key)
@@ -10,5 +10,5 @@ function value = exists(varargin)
 % The key must be an ordinary object.
 %
 % See also bdb.get
-  value = bdbmex_(mfilename, varargin{:});
+  value = mex_function_(mfilename, varargin{:});
 end

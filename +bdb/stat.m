@@ -1,5 +1,5 @@
 function result = stat(varargin)
-%BDB.STAT Get a statistics of the database.
+%STAT Get a statistics of the database.
 %
 %    result = bdb.stat()
 %    result = bdb.stat(id)
@@ -10,5 +10,5 @@ function result = stat(varargin)
 % The result is a struct array.
 %
 % See also bdb.open bdb.close
-  result = bdbmex_(mfilename, varargin{:});
+  result = mex_function_(mfilename, varargin{:});
 end

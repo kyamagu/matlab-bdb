@@ -40,7 +40,13 @@ Build
 The `bdb.make` function builds necessary dependent files. Check `bdb.make` for
 the detail of compile-time options.
 
+'''Building with the default'''
+
     >> bdb.make;
+
+'''Building with additional path'''
+
+    >> bdb.make('-I/opt/local/include/db53','-L/opt/local/lib/db53')
 
 API
 ---

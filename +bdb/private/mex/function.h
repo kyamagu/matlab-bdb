@@ -1,9 +1,43 @@
-// MEX C++ helper library.
+// MEX function helper library.
+//
+// This helper contains MEX_FUNCTION() macro to help create a set of matlab
+// mex functions. Two files are required to create a new mex function. Suppose
+// you are creating a mex function `myfunc`. Then, make the following files.
+// 
+// ## myfunc.m
+//
+// This file contains help documentation and a line to invoke the mex function.
+// The contents of the file look like the following.
+//
+//     function [ output_args ] = myfunc( input_args )
+//     %MYFUNC Description of the function.
+//     %
+//     %   Details go here.
+//     %
+//       output_args = mex_function_(mfilename, input_args)
+//     end
+//
+// ## private/myfunc.cc
+//
+// This file is the implementation of the mex function. The MEX_FUNCTION macro
+// defines an entry point of the function. The file content would look like
+// the following.
+//
+//     #include "mex/function.h"
+//     
+//     MEX_FUNCTION(myfunc) (int nlhs,
+//                           mxArray* plhs[],
+//                           int nrhs,
+//                           const mxArray* prhs[]) {
+//       if (nrhs != 1 || nlhs > 1)
+//         mexErrMsgTxt("Wrong number of arguments.");
+//       ...
+//     }
 //
 // Kota Yamaguchi 2013 <kyamagu@cs.stonybrook.edu>
 
-#ifndef __MEX_HELPERS_H__
-#define __MEX_HELPERS_H__
+#ifndef __MEX_FUNCTION_H__
+#define __MEX_FUNCTION_H__
 
 #include <map>
 #include <mex.h>
@@ -28,6 +62,8 @@ class OperationCreator {
 public:
   // Register an operation in the constructor.
   OperationCreator(const std::string& name);
+  // Destructor.
+  virtual ~OperationCreator();
   // Implementation must return a new instance of the operation.
   virtual Operation* create() = 0;
 };
@@ -58,14 +94,14 @@ private:
 
 // Define a MEX API function. Example:
 //
-// MEX_API(myfunc) (int nlhs, mxArray *plhs[],
+// MEX_FUNCTION(myfunc) (int nlhs, mxArray *plhs[],
 //                  int nrhs, const mxArray *prhs[]) {
 //   if (nrhs != 1 || nlhs > 1)
 //     mexErrMsgTxt("Wrong number of arguments.");
 //   ...
 // }
 //
-#define MEX_API(name) \
+#define MEX_FUNCTION(name) \
 class Operation_##name : public mex::Operation { \
 public: \
   virtual void operator()(int nlhs, \
@@ -79,4 +115,4 @@ const mex::OperationCreatorImpl<Operation_##name> \
     Operation_##name::creator_(#name); \
 void Operation_##name::operator()
 
-#endif // __MEX_HELPERS_H__
+#endif // __MEX_FUNCTION_H__

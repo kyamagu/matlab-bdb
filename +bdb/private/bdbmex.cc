@@ -3,7 +3,7 @@
 // Kota Yamaguchi 2012 <kyamagu@cs.stonybrook.edu>
 
 #include "libbdbmex.h"
-#include "mex_helpers.h"
+#include "mex/function.h"
 
 using bdbmex::Sessions;
 using bdbmex::Database;
@@ -12,11 +12,18 @@ namespace {
 
 // Convert mxArray to string.
 string StringFromMxArray(const mxArray* array) {
+  if (!mxIsChar(array))
+    ERROR("Invalid input type %s for char.", mxGetClassName(array));
   return string(mxGetChars(array),
                 mxGetChars(array) + mxGetNumberOfElements(array));
 }
 
-MEX_API(open) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
+} // namespace
+
+MEX_FUNCTION(open) (int nlhs,
+                    mxArray *plhs[],
+                    int nrhs,
+                    const mxArray *prhs[]) {
   if (nlhs > 1)
     ERROR("Too many output: %d for 1.", nlhs);
   if (nrhs < 1 || nrhs > 2)
@@ -28,7 +35,10 @@ MEX_API(open) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
   plhs[0] = mxCreateDoubleScalar(Sessions::open(filename, home_dir));
 }
 
-MEX_API(close) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
+MEX_FUNCTION(close) (int nlhs,
+                     mxArray *plhs[],
+                     int nrhs,
+                     const mxArray *prhs[]) {
   if (nlhs)
     ERROR("Too many output: %d for 0.", nlhs);
   if (nrhs > 1 || (nrhs == 1 && !mxIsNumeric(prhs[0])))
@@ -37,7 +47,10 @@ MEX_API(close) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
   Sessions::close(id);
 }
 
-MEX_API(get) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
+MEX_FUNCTION(get) (int nlhs,
+                   mxArray *plhs[],
+                   int nrhs,
+                   const mxArray *prhs[]) {
   if (nlhs > 1)
     ERROR("Too many output: %d for 1.", nlhs);
   if (nrhs > 2)
@@ -58,7 +71,10 @@ MEX_API(get) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     ERROR("Failed to get an entry: %s", connection->error_message());
 }
 
-MEX_API(put) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
+MEX_FUNCTION(put) (int nlhs,
+                   mxArray *plhs[],
+                   int nrhs,
+                   const mxArray *prhs[]) {
   if (nlhs > 0)
     ERROR("Too many output: %d for 1.", nlhs);
   if (nrhs > 3)
@@ -82,7 +98,10 @@ MEX_API(put) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     ERROR("Failed to put an entry: %s", connection->error_message());
 }
 
-MEX_API(delete) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
+MEX_FUNCTION(delete) (int nlhs,
+                      mxArray *plhs[],
+                      int nrhs,
+                      const mxArray *prhs[]) {
   if (nlhs > 0)
     ERROR("Too many output: %d for 0.", nlhs);
   if (nrhs > 2)
@@ -103,7 +122,10 @@ MEX_API(delete) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     ERROR("Failed to delete an entry: %s", connection->error_message());
 }
 
-MEX_API(exists) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
+MEX_FUNCTION(exists) (int nlhs,
+                      mxArray *plhs[],
+                      int nrhs,
+                      const mxArray *prhs[]) {
   if (nlhs > 1)
     ERROR("Too many output: %d for 1.", nlhs);
   if (nrhs > 2)
@@ -124,7 +146,10 @@ MEX_API(exists) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     ERROR("Failed to query a key: %s", connection->error_message());
 }
 
-MEX_API(stat) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
+MEX_FUNCTION(stat) (int nlhs,
+                    mxArray *plhs[],
+                    int nrhs,
+                    const mxArray *prhs[]) {
   if (nlhs > 1)
     ERROR("Too many output: %d for 1.", nlhs);
   if (nrhs > 1)
@@ -140,7 +165,10 @@ MEX_API(stat) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     ERROR("Failed to query stat: %s", connection->error_message());
 }
 
-MEX_API(keys) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
+MEX_FUNCTION(keys) (int nlhs,
+                    mxArray *plhs[],
+                    int nrhs,
+                    const mxArray *prhs[]) {
   if (nlhs > 1)
     ERROR("Too many output: %d for 1.", nlhs);
   if (nrhs > 1)
@@ -156,7 +184,10 @@ MEX_API(keys) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     ERROR("Failed to query keys: %s", connection->error_message());
 }
 
-MEX_API(values) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
+MEX_FUNCTION(values) (int nlhs,
+                      mxArray *plhs[],
+                      int nrhs,
+                      const mxArray *prhs[]) {
   if (nlhs > 1)
     ERROR("Too many output: %d for 1.", nlhs);
   if (nrhs > 1)
@@ -171,5 +202,3 @@ MEX_API(values) (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
   if (!connection->values(&plhs[0]))
     ERROR("Failed to query values: %s", connection->error_message());
 }
-
-} // namespace
