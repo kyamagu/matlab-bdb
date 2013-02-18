@@ -81,27 +81,29 @@ void Record::serialize_mxarray(const mxArray* value, vector<uint8_t>* binary) {
 void Record::deserialize_mxarray(const vector<uint8_t>& binary,
                                  mxArray** value) {
   *value = static_cast<mxArray*>(mxDeserialize(&binary[0], binary.size()));
-  if (value == NULL)
+  if (*value == NULL)
     ERROR("Failed to deserialize mxArray.");
 }
 
 #ifdef ENABLE_ZLIB
 
 void Record::compress_mxarray(const mxArray* value, vector<uint8_t>* binary) {
-  mxArray* serialzed_array = static_cast<mxArray*>(mxSerialize(value));
-  uLongf array_size = mxGetNumberOfElements(serialzed_array);
+  mxArray* serialized_array = static_cast<mxArray*>(mxSerialize(value));
+  if (serialized_array == NULL)
+    ERROR("Failed to serialize mxArray.");
+  uLongf array_size = mxGetNumberOfElements(serialized_array);
   vector<uint8_t> buffer(compressBound(array_size));
   uLongf actual_size = buffer.size();
   int code_ = compress(&buffer[0],
                        &actual_size,
-                       static_cast<const Bytef*>(mxGetData(serialzed_array)),
+                       static_cast<const Bytef*>(mxGetData(serialized_array)),
                        array_size);
   binary->resize(sizeof(uLongf) + actual_size);
   memcpy(&(*binary)[0], &array_size, sizeof(uLongf));
   copy(buffer.begin(),
        buffer.begin() + actual_size,
        binary->begin() + sizeof(uLongf));
-  mxDestroyArray(serialzed_array);
+  mxDestroyArray(serialized_array);
   if (code_ != Z_OK)
     ERROR("Fatal error in compress_mxarray");
 }
@@ -119,6 +121,8 @@ void Record::decompress_mxarray(const vector<uint8_t>& binary,
                          &binary[0] + sizeof(uLongf),
                          binary.size() - sizeof(uLongf));
   *value = static_cast<mxArray*>(mxDeserialize(&buffer[0], buffer.size()));
+  if (*value == NULL)
+    ERROR("Failed to deserialize mxArray.");
   if (code_ != Z_OK)
     ERROR("Fatal error in decompress_mxarray: code = %d.", code_);
 }
