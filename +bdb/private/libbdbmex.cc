@@ -248,15 +248,20 @@ bool Database::stat(mxArray** output) {
       "pagecnt", "pagesize", "re_len", "re_pad", "version"};
   code_ = database_->stat(database_, NULL, &stats, 0);
   *output = mxCreateStructMatrix(1, 1, 9, kFields);
-  mxSetField(*output, 0, kFields[0], mxCreateDoubleScalar(stats->bt_magic));
-  mxSetField(*output, 0, kFields[1], mxCreateDoubleScalar(stats->bt_minkey));
-  mxSetField(*output, 0, kFields[2], mxCreateDoubleScalar(stats->bt_ndata));
-  mxSetField(*output, 0, kFields[3], mxCreateDoubleScalar(stats->bt_nkeys));
-  mxSetField(*output, 0, kFields[4], mxCreateDoubleScalar(stats->bt_pagecnt));
-  mxSetField(*output, 0, kFields[5], mxCreateDoubleScalar(stats->bt_pagesize));
-  mxSetField(*output, 0, kFields[6], mxCreateDoubleScalar(stats->bt_re_len));
-  mxSetField(*output, 0, kFields[7], mxCreateDoubleScalar(stats->bt_re_pad));
-  mxSetField(*output, 0, kFields[8], mxCreateDoubleScalar(stats->bt_version));
+  if (*output != NULL) {
+    mxSetField(*output, 0, kFields[0], mxCreateDoubleScalar(stats->bt_magic));
+    mxSetField(*output, 0, kFields[1], mxCreateDoubleScalar(stats->bt_minkey));
+    mxSetField(*output, 0, kFields[2], mxCreateDoubleScalar(stats->bt_ndata));
+    mxSetField(*output, 0, kFields[3], mxCreateDoubleScalar(stats->bt_nkeys));
+    mxSetField(*output, 0, kFields[4], 
+        mxCreateDoubleScalar(stats->bt_pagecnt));
+    mxSetField(*output, 0, kFields[5],
+        mxCreateDoubleScalar(stats->bt_pagesize));
+    mxSetField(*output, 0, kFields[6], mxCreateDoubleScalar(stats->bt_re_len));
+    mxSetField(*output, 0, kFields[7], mxCreateDoubleScalar(stats->bt_re_pad));
+    mxSetField(*output, 0, kFields[8],
+        mxCreateDoubleScalar(stats->bt_version));
+  }
   free(stats);
   return ok();
 }
