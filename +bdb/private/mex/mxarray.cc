@@ -12,14 +12,12 @@ MxArray::MxArray(mxArray* array) : array_(array), mutable_array_(array) {}
 
 MxArray::MxArray(const mxArray* array) : array_(array), mutable_array_(NULL) {}
 
-MxArray::MxArray(const MxArray& mxarray) :
-    array_(mxarray.array_), mutable_array_(mxarray.mutable_array_) {}
+MxArray::MxArray(const MxArray& array) :
+    array_(array.array_), mutable_array_(array.mutable_array_) {}
 
 MxArray& MxArray::operator=(const MxArray& rhs) {
-  if (this != &rhs) {
-    this->array_ = rhs.array_;
-    this->mutable_array_ = rhs.mutable_array_;
-  }
+  if (this != &rhs)
+    this->reset(rhs.mutable_array_);
   return *this;
 }
 
