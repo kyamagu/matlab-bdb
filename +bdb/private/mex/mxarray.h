@@ -5,11 +5,11 @@
 ///
 /// Conversion from mxArray* to C++ types.
 ///
-///     int value = MxArray(prhs[0]).toInt();
-///     double value = MxArray(prhs[0]).toDouble();
-///     bool value = MxArray(prhs[0]).toBool();
-///     std::string value = MxArray(prhs[0]).toString();
-///     std::vector<double> = MxArray(prhs[0]).toVector<double>();
+///     int value            = MxArray(prhs[0]).toInt();
+///     double value         = MxArray(prhs[0]).toDouble();
+///     bool value           = MxArray(prhs[0]).toBool();
+///     std::string value    = MxArray(prhs[0]).toString();
+///     std::vector<double>  = MxArray(prhs[0]).toVector<double>();
 ///     std::vector<MxArray> = MxArray(prhs[0]).toVector<MxArray>();
 ///
 /// Conversion from C++ types to mxArray*.
@@ -111,7 +111,7 @@ public:
   void destroy();
   /// Conversion to const mxArray*.
   /// @return const mxArray* pointer.
-  const mxArray* get() const;
+  inline const mxArray* get() const { return array_; }
   /// Conversion to mxArray*. Only non-const MxArray can be converted.
   /// @return mxArray* pointer.
   mxArray* getMutable();
@@ -135,9 +135,10 @@ public:
   ///
   /// @code
   ///     MxArray array(prhs[0]);
-  ///     vector<double> values = array.toVector<double>();
+  ///     vector<double> values;
+  ///     array.toVector<double>(&values);
   /// @endcode
-  template <typename T> std::vector<T> toVector() const;
+  template <typename T> void toVector(std::vector<T>* values) const;
 
   /// Class ID of mxArray.
   inline mxClassID classID() const { return mxGetClassID(array_); }
@@ -152,9 +153,8 @@ public:
   /// Array of each dimension.
   inline const mwSize* dims() const { return mxGetDimensions(array_); }
   /// Vector of dimensions.
-  inline std::vector<mwSize> size() const {
-    return std::vector<mwSize>(dims(), dims() + ndims());
-  }
+  /// @param size_value vector of dimensions.
+  void size(std::vector<mwSize>* size_value) const;
   /// Number of rows in an array.
   inline mwSize rows() const { return mxGetM(array_); }
   /// Number of columns in an array.
@@ -166,8 +166,8 @@ public:
   /// @return std::string.
   std::string fieldName(int index) const;
   /// Get field names of a struct array.
-  /// @return std::string.
-  std::vector<std::string> fieldNames() const;
+  /// @params field_nams std::vector<std::string> of struct field names.
+  void fieldNames(std::vector<std::string>* field_names) const;
   /// Number of elements in IR, PR, and PI arrays.
   inline mwSize nzmax() const { return mxGetNzmax(array_); }
   /// Offset from first element to desired element.
@@ -195,11 +195,11 @@ public:
   /// Determine whether array is empty.
   inline bool isEmpty() const { return mxIsEmpty(array_); }
   /// Determine whether input is finite.
-  static inline bool isFinite(double value) { return mxIsFinite(value); }
+  static inline bool IsFinite(double value) { return mxIsFinite(value); }
   /// Determine whether array was copied from MATLAB global workspace.
   inline bool isFromGlobalWS() const { return mxIsFromGlobalWS(array_); };
   /// Determine whether input is infinite.
-  static inline bool isInf(double value) { return mxIsInf(value); }
+  static inline bool IsInf(double value) { return mxIsInf(value); }
   /// Determine whether array represents data as signed 8-bit integers.
   inline bool isInt8() const { return mxIsInt8(array_); }
   /// Determine whether array represents data as signed 16-bit integers.
@@ -239,7 +239,9 @@ public:
         mxGetField(array_, index, field_name.c_str()) != NULL;
   }
   /// Determine wheter the array is const or not.
-  bool isConst() const { return array_ && mutable_array_ == NULL; }
+  inline bool isConst() const { return !isNull() && mutable_array_ == NULL; }
+  /// Determine wheter the array is initialized or not.
+  inline bool isNull() const { return array_ == NULL; }
   /// Template for element accessor.
   /// @param index index of the array element.
   /// @return value of the element at index.
@@ -295,7 +297,7 @@ public:
   /// @param index linear index of the struct array element.
   void set(const std::string& field_name, mxArray* value, mwIndex index = 0);
   /// Determine whether input is NaN (Not-a-Number).
-  static inline bool isNaN(double value) { return mxIsNaN(value); }
+  static inline bool IsNaN(double value) { return mxIsNaN(value); }
   /// Value of infinity.
   static inline double Inf() { return mxGetInf(); }
   /// Value of NaN (Not-a-Number).
@@ -320,64 +322,65 @@ MxArray::MxArray(const std::vector<T>& values) :
 }
 
 template <typename T>
-std::vector<T> MxArray::toVector() const {
+void MxArray::toVector(std::vector<T>* values) const {
+  if (values == NULL)
+    mexErrMsgIdAndTxt("mxarray:error", "Null pointer exception.");
   if (array_ == NULL)
     mexErrMsgIdAndTxt("mxarray:error", "Null pointer exception.");
   mwSize num_elements = numel();
   switch (classID()) {
     case mxCHAR_CLASS: {
       mxChar* data = mxGetChars(array_);
-      return std::vector<T>(data, data + num_elements);
+      values->assign(data, data + num_elements);
     }
     case mxDOUBLE_CLASS: {
       double* data = mxGetPr(array_);
-      return std::vector<T>(data, data + num_elements);
+      values->assign(data, data + num_elements);
     }
     case mxINT8_CLASS: {
       int8_t* data = reinterpret_cast<int8_t*>(mxGetData(array_));
-      return std::vector<T>(data, data + num_elements);
+      values->assign(data, data + num_elements);
     }
     case mxUINT8_CLASS: {
       uint8_t* data = reinterpret_cast<uint8_t*>(mxGetData(array_));
-      return std::vector<T>(data, data + num_elements);
+      values->assign(data, data + num_elements);
     }
     case mxINT16_CLASS: {
       int16_t* data = reinterpret_cast<int16_t*>(mxGetData(array_));
-      return std::vector<T>(data, data + num_elements);
+      values->assign(data, data + num_elements);
     }
     case mxUINT16_CLASS: {
       uint16_t* data = reinterpret_cast<uint16_t*>(mxGetData(array_));
-      return std::vector<T>(data, data + num_elements);
+      values->assign(data, data + num_elements);
     }
     case mxINT32_CLASS: {
       int32_t* data = reinterpret_cast<int32_t*>(mxGetData(array_));
-      return std::vector<T>(data, data + num_elements);
+      values->assign(data, data + num_elements);
     }
     case mxUINT32_CLASS: {
       uint32_t* data = reinterpret_cast<uint32_t*>(mxGetData(array_));
-      return std::vector<T>(data, data + num_elements);
+      values->assign(data, data + num_elements);
     }
     case mxINT64_CLASS: {
       int64_t* data = reinterpret_cast<int64_t*>(mxGetData(array_));
-      return std::vector<T>(data, data + num_elements);
+      values->assign(data, data + num_elements);
     }
     case mxUINT64_CLASS: {
       uint64_t* data = reinterpret_cast<uint64_t*>(mxGetData(array_));
-      return std::vector<T>(data, data + num_elements);
+      values->assign(data, data + num_elements);
     }
     case mxSINGLE_CLASS: {
       float* data = reinterpret_cast<float*>(mxGetData(array_));
-      return std::vector<T>(data, data + num_elements);
+      values->assign(data, data + num_elements);
     }
     case mxLOGICAL_CLASS: {
       mxLogical* data = reinterpret_cast<mxLogical*>(mxGetData(array_));
-      return std::vector<T>(data, data + num_elements);
+      values->assign(data, data + num_elements);
     }
     default: {
       mexErrMsgIdAndTxt("mxarray:error",
                         "Cannot convert %s to a scalar value.",
                         className().c_str());
-      return std::vector<T>();
     }
   }
 }
@@ -566,9 +569,10 @@ template <> MxArray MxArray::at(mwIndex index) const;
 /// Example:
 /// @code
 ///     MxArray cell_array(prhs[0]);
-///     vector<MxArray> v = cell_array.toVector<MxArray>();
+///     vector<MxArray> values;
+///     cell_array.toVector<MxArray>(&values);
 /// @endcod
-template <> std::vector<MxArray> MxArray::toVector() const;
+template <> void MxArray::toVector(std::vector<MxArray>* values) const;
 
 /// Convert MxArray to std::vector<std::string>.
 /// @return std::vector<std::string> value.
@@ -576,9 +580,10 @@ template <> std::vector<MxArray> MxArray::toVector() const;
 /// Example:
 /// @code
 ///     MxArray cell_array(prhs[0]);
-///     vector<string> v = cellArray.toVector<string>();
+///     vector<string> values;
+///     cell_array.toVector<MxArray>(&values);
 /// @endcod
-template <> std::vector<std::string> MxArray::toVector() const;
+template <> void MxArray::toVector(std::vector<std::string>* values) const;
 
 } // namespace mex
 

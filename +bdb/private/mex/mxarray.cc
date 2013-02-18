@@ -24,38 +24,38 @@ MxArray& MxArray::operator=(const MxArray& rhs) {
 MxArray::MxArray(const int value) :
     mutable_array_(mxCreateDoubleScalar(static_cast<double>(value))) {
   array_ = mutable_array_;
-  if (!array_)
+  if (array_ == NULL)
     mexErrMsgIdAndTxt("mxarray:error", "Null pointer exception.");
 }
 
 MxArray::MxArray(const double value) :
     mutable_array_(mxCreateDoubleScalar(value)) {
   array_ = mutable_array_;
-  if (!array_)
+  if (array_ == NULL)
     mexErrMsgIdAndTxt("mxarray:error", "Null pointer exception.");
 }
 
 MxArray::MxArray(const bool value) :
     mutable_array_(mxCreateLogicalScalar(value)) {
   array_ = mutable_array_;
-  if (!array_)
+  if (array_ == NULL)
     mexErrMsgIdAndTxt("mxarray:error", "Null pointer exception.");
 }
 
 MxArray::MxArray(const std::string& value) :
     mutable_array_(mxCreateString(value.c_str())) {
   array_ = mutable_array_;
-  if (!array_)
+  if (array_ == NULL)
     mexErrMsgIdAndTxt("mxarray:error", "Null pointer exception.");
 }
 
 MxArray::MxArray(std::vector<MxArray>* values) :
     array_(NULL), mutable_array_(NULL) {
-  if (!values)
+  if (values == NULL)
     mexErrMsgIdAndTxt("mxarray:error", "Null pointer exception.");
   mutable_array_ = mxCreateCellMatrix(1, values->size());
   array_ = mutable_array_;
-  if (!array_)
+  if (array_ == NULL)
     mexErrMsgIdAndTxt("mxarray:error", "Null pointer exception.");
   for (int i = 0; i < values->size(); ++i)
     set(i, (*values)[i].getMutable());
@@ -64,13 +64,13 @@ MxArray::MxArray(std::vector<MxArray>* values) :
 MxArray::MxArray(int nfields, const char** fields, int rows, int columns) :
     mutable_array_(mxCreateStructMatrix(rows, columns, nfields, fields)) {
   array_ = mutable_array_;
-  if (!array_)
+  if (array_ == NULL)
     mexErrMsgIdAndTxt("mxarray:error", "Null pointer exception.");
 }
 
 MxArray MxArray::Cell(int rows, int columns) {
   mxArray* cell_array = mxCreateCellMatrix(rows, columns);
-  if (!cell_array)
+  if (cell_array == NULL)
     mexErrMsgIdAndTxt("mxarray:error", "Null pointer exception.");
   return MxArray(cell_array);
 }
@@ -96,7 +96,7 @@ void MxArray::reset(mxArray* array) {
 
 MxArray MxArray::clone() {
   mxArray* array = mxDuplicateArray(array_);
-  if (!array)
+  if (array == NULL)
     mexErrMsgIdAndTxt("mxarray:error", "Null pointer exception.");
   return MxArray(array);
 }
@@ -104,10 +104,6 @@ MxArray MxArray::clone() {
 void MxArray::destroy() {
   mxDestroyArray(mutable_array_);
   reset(static_cast<mxArray*>(NULL));
-}
-
-const mxArray* MxArray::get() const {
-  return array_;
 }
 
 mxArray* MxArray::getMutable() {
@@ -143,24 +139,29 @@ std::string MxArray::toString() const {
   return std::string(mxGetChars(array_), mxGetChars(array_) + numel());
 }
 
+void MxArray::size(std::vector<mwSize>* size_value) const {
+  if (size_value == NULL)
+    mexErrMsgIdAndTxt("mxarray:error", "Null pointer exception.");
+  size_value->assign(dims(), dims() + ndims());
+}
+
 std::string MxArray::fieldName(int index) const {
   const char* field_name = mxGetFieldNameByNumber(array_, index);
-  if (!field_name)
+  if (field_name == NULL)
     mexErrMsgIdAndTxt("mxarray:error",
                       "Failed to get field name at %d.",
                       index);
   return std::string(field_name);
 }
 
-std::vector<std::string> MxArray::fieldNames() const {
+void MxArray::fieldNames(std::vector<std::string>* field_names) const {
+  if (field_names == NULL)
+    mexErrMsgIdAndTxt("mxarray:error", "Null pointer exception.");
   if (!isStruct())
     mexErrMsgIdAndTxt("mxarray:error", "MxArray is not a struct array.");
-  int num_fields = nfields();
-  std::vector<std::string> field_names;
-  field_names.reserve(num_fields);
-  for (int i = 0; i < num_fields; ++i)
-    field_names.push_back(fieldName(i));
-  return field_names;
+  field_names->resize(nfields());
+  for (int i = 0; i < field_names->size(); ++i)
+    (*field_names)[i] = fieldName(i);
 }
 
 mwIndex MxArray::subs(mwIndex row, mwIndex column) const {
@@ -182,20 +183,18 @@ MxArray MxArray::at(const std::string& field_name, mwIndex index) const {
   if (index < 0 || numel() <= index)
     mexErrMsgIdAndTxt("mxarray:error", "Index is out of range.");
   mxArray* array = mxGetField(array_, index, field_name.c_str());
-  if (!array)
+  if (array == NULL)
     mexErrMsgIdAndTxt("mxarray:error",
                       "Field '%s' doesn't exist",
                       field_name.c_str());
-  if (isConst())
-    return MxArray(static_cast<const mxArray*>(array));
-  else
-    return MxArray(array);
+  return (isConst()) ? 
+      MxArray(static_cast<const mxArray*>(array)) : MxArray(array);
 }
 
 void MxArray::set(mwIndex index, mxArray* value) {
-  if (!mutable_array_)
+  if (mutable_array_ == NULL)
     mexErrMsgIdAndTxt("mxarray:error", "Null pointer exception.");
-  if (!value)
+  if (value == NULL)
     mexErrMsgIdAndTxt("mxarray:error", "Null pointer exception.");
   if (!isCell())
     mexErrMsgIdAndTxt("mxarray:error",
@@ -209,9 +208,9 @@ void MxArray::set(mwIndex index, mxArray* value) {
 void MxArray::set(const std::string& field_name,
                   mxArray* value,
                   mwIndex index) {
-  if (!mutable_array_)
+  if (mutable_array_ == NULL)
     mexErrMsgIdAndTxt("mxarray:error", "Null pointer exception.");
-  if (!value)
+  if (value == NULL)
     mexErrMsgIdAndTxt("mxarray:error", "Null pointer exception.");
   if (!isStruct())
     mexErrMsgIdAndTxt("mxarray:error",
@@ -232,7 +231,7 @@ MxArray::MxArray(const std::vector<char>& values) :
   std::string string_value(values.begin(), values.end());
   mutable_array_ = mxCreateString(string_value.c_str());
   array_ = mutable_array_;
-  if (!array_)
+  if (array_ == NULL)
     mexErrMsgIdAndTxt("mxarray:error", "Null pointer exception.");
 }
 
@@ -240,7 +239,7 @@ template <>
 MxArray::MxArray(const std::vector<bool>& values) :
     mutable_array_(mxCreateLogicalMatrix(1, values.size())) {
   array_ = mutable_array_;
-  if (!array_)
+  if (array_ == NULL)
     mexErrMsgIdAndTxt("mxarray:error", "Null pointer exception.");
   std::copy(values.begin(), values.end(), mxGetLogicals(mutable_array_));
 }
@@ -249,7 +248,7 @@ template <>
 MxArray::MxArray(const std::vector<std::string>& values) :
     mutable_array_(mxCreateCellMatrix(1, values.size())) {
   array_ = mutable_array_;
-  if (!array_)
+  if (array_ == NULL)
     mexErrMsgIdAndTxt("mxarray:error", "Null pointer exception.");
   for (int i = 0; i < values.size(); ++i) {
     set(i, MxArray(values[i]).getMutable());
@@ -263,35 +262,36 @@ MxArray MxArray::at(mwIndex index) const {
                       "MxArray is not a cell array but %s.",
                       className().c_str());
   mxArray* array = mxGetCell(array_, index);
-  if (!array)
+  if (array == NULL)
     mexErrMsgIdAndTxt("mxarray:error", "Null pointer exception.");
-  if (isConst())
-    return MxArray(static_cast<const mxArray*>(array));
-  else
-    return MxArray(array);
+  return (isConst()) ?
+      MxArray(static_cast<const mxArray*>(array)) : MxArray(array);
 }
 
 template <>
-std::vector<MxArray> MxArray::toVector() const {
-  if (isCell()) {
-    std::vector<MxArray> values(numel());
-    for (int i = 0; i < values.size(); ++i)
-      values[i] = at<MxArray>(i);
-    return values;
-  }
-  else
-    return std::vector<MxArray>(1, *this);
-}
-
-template <>
-std::vector<std::string> MxArray::toVector() const {
-  std::vector<std::string> values(numel());
+void MxArray::toVector(std::vector<MxArray>* values) const {
+  if (values == NULL)
+    mexErrMsgIdAndTxt("mxarray:error", "Null pointer exception.");
   if (!isCell())
     mexErrMsgIdAndTxt("mxarray:error",
-                      "Cannot convert to std::vector<std::string>.");
-  for (int i = 0; i < values.size(); ++i)
-    values[i] = at<MxArray>(i).toString();
-  return values;
+                      "MxArray is not a cell array but %s.",
+                      className().c_str());
+  values->resize(numel());
+  for (int i = 0; i < values->size(); ++i)
+    (*values)[i] = at<MxArray>(i);
+}
+
+template <>
+void MxArray::toVector(std::vector<std::string>* values) const {
+  if (values == NULL)
+    mexErrMsgIdAndTxt("mxarray:error", "Null pointer exception.");
+  if (!isCell())
+    mexErrMsgIdAndTxt("mxarray:error",
+                      "MxArray is not a cell array but %s.",
+                      className().c_str());
+  values->resize(numel());
+  for (int i = 0; i < values->size(); ++i)
+    (*values)[i] = at<MxArray>(i).toString();
 }
 
 } // namespace mex
