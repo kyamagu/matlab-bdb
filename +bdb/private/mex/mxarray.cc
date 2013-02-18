@@ -1,6 +1,6 @@
-// MxArray data conversion library.
-//
-// Kota Yamaguchi 2013 <kyamagu@cs.stonybrook.edu>
+/// MxArray data conversion library.
+///
+/// Kota Yamaguchi 2013 <kyamagu@cs.stonybrook.edu>
 
 #include "mxarray.h"
 
@@ -58,7 +58,7 @@ MxArray::MxArray(std::vector<MxArray>* values) :
   if (!array_)
     mexErrMsgIdAndTxt("mxarray:error", "Null pointer exception.");
   for (int i = 0; i < values->size(); ++i)
-    set(i, &(*values)[i]);
+    set(i, (*values)[i].getMutable());
 }
 
 MxArray::MxArray(int nfields, const char** fields, int rows, int columns) :
@@ -192,7 +192,7 @@ MxArray MxArray::at(const std::string& field_name, mwIndex index) const {
     return MxArray(array);
 }
 
-void MxArray::set(mwIndex index, MxArray* value) {
+void MxArray::set(mwIndex index, mxArray* value) {
   if (!mutable_array_)
     mexErrMsgIdAndTxt("mxarray:error", "Null pointer exception.");
   if (!value)
@@ -203,11 +203,11 @@ void MxArray::set(mwIndex index, MxArray* value) {
                       className().c_str());
   if (index < 0 || numel() <= index)
     mexErrMsgIdAndTxt("mxarray:error", "Index is out of range.");
-  mxSetCell(mutable_array_, index, value->getMutable());
+  mxSetCell(mutable_array_, index, value);
 }
 
 void MxArray::set(const std::string& field_name,
-                  MxArray* value,
+                  mxArray* value,
                   mwIndex index) {
   if (!mutable_array_)
     mexErrMsgIdAndTxt("mxarray:error", "Null pointer exception.");
@@ -223,7 +223,7 @@ void MxArray::set(const std::string& field_name,
                         "Failed to create a field '%s'",
                         field_name.c_str());
   }
-  mxSetField(mutable_array_, index, field_name.c_str(), value->getMutable());
+  mxSetField(mutable_array_, index, field_name.c_str(), value);
 }
 
 template <>
@@ -252,8 +252,7 @@ MxArray::MxArray(const std::vector<std::string>& values) :
   if (!array_)
     mexErrMsgIdAndTxt("mxarray:error", "Null pointer exception.");
   for (int i = 0; i < values.size(); ++i) {
-    MxArray value(values[i]);
-    set(i, &value);
+    set(i, MxArray(values[i]).getMutable());
   }
 }
 

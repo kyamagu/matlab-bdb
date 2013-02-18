@@ -1,5 +1,5 @@
-function storage_benchmark
-%STORAGE_BENCHMARK Measure storage performance of bdb against matfile.
+function bdb_storage_benchmark
+%BDB_STORAGE_BENCHMARK Measure storage performance of bdb against matfile.
 
   datasize = 1024 * 16;
   chunksize = 1024 * 2;

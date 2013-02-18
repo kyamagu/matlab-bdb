@@ -1,6 +1,6 @@
-// Berkeley DB matlab driver library.
-//
-// Kota Yamaguchi 2012 <kyamagu@cs.stonybrook.edu>
+/// Berkeley DB matlab driver library.
+///
+/// Kota Yamaguchi 2012 <kyamagu@cs.stonybrook.edu>
 
 #include "libbdbmex.h"
 #include <cstring>
@@ -8,8 +8,10 @@
 #include <zlib.h>
 #endif
 
-// Hidden MEX API.
+/// Hidden MEX API for encoding.
 EXTERN_C mxArray* mxSerialize(const mxArray*);
+
+/// Hidden MEX API for decoding.
 EXTERN_C mxArray* mxDeserialize(const void*, size_t);
 
 namespace bdbmex {

@@ -1,6 +1,6 @@
-// Berkeley DB mex interface.
-//
-// Kota Yamaguchi 2012 <kyamagu@cs.stonybrook.edu>
+/// Berkeley DB mex interface.
+///
+/// Kota Yamaguchi 2012 <kyamagu@cs.stonybrook.edu>
 
 #include "libbdbmex.h"
 #include "mex/function.h"

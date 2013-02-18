@@ -1,6 +1,6 @@
-// MEX function helper library.
-//
-// Kota Yamaguchi 2013 <kyamagu@cs.stonybrook.edu>
+/// MEX function helper library.
+///
+/// Kota Yamaguchi 2013 <kyamagu@cs.stonybrook.edu>
 
 #include "function.h"
 #include <memory>
@@ -64,7 +64,7 @@ void CheckOutputArguments(int min_args, int max_args, int nlhs) {
 
 } // namespace mex
 
-// Main entry of the mex function.
+/// Main entry of the mex function.
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
   if (nrhs < 1 || !mxIsChar(prhs[0]))
     mexErrMsgIdAndTxt("mex:argumentError",
