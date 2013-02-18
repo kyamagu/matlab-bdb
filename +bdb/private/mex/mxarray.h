@@ -33,7 +33,7 @@ class MxArray {
 public:
   /// Empty MxArray constructor. Use reset() to set a pointer.
   MxArray();
-  /// MxArray constructor from const mxArray*.
+  /// MxArray constructor from const mxArray*. This will be a const MxArray.
   /// @param array mxArray pointer given by mexFunction.
   explicit MxArray(const mxArray* array);
   /// MxArray constructor from mutable mxArray*.
