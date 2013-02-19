@@ -111,6 +111,8 @@ public:
   bool keys(mxArray** output);
   /// Dump values in the database.
   bool values(mxArray** output);
+  /// Shrink the database file.
+  bool compact();
 
 private:
   /// Close the connection.

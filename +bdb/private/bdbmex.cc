@@ -159,3 +159,18 @@ MEX_FUNCTION(values) (int nlhs,
   if (!connection->values(&plhs[0]))
     ERROR("Failed to query values: %s", connection->error_message());
 }
+
+MEX_FUNCTION(compact) (int nlhs,
+                       mxArray *plhs[],
+                       int nrhs,
+                       const mxArray *prhs[]) {
+  CheckInputArguments(0, 1, nrhs);
+  CheckOutputArguments(0, 0, nlhs);
+  Database* connection = NULL;
+  if (nrhs == 0)
+    connection = Sessions::get(Sessions::default_id());
+  else
+    connection = Sessions::get(MxArray(prhs[0]).toInt());
+  if (!connection->compact())
+    ERROR("Failed to compact: %s", connection->error_message());
+}

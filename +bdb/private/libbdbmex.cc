@@ -326,6 +326,17 @@ bool Database::values(mxArray** output) {
   return ok() || (code_ == DB_NOTFOUND);
 }
 
+bool Database::compact() {
+  code_ = database_->compact(database_,
+                             NULL,
+                             NULL,
+                             NULL,
+                             NULL,
+                             DB_FREE_SPACE,
+                             NULL);
+  return ok();
+}
+
 int Sessions::open(const string& filename, const string& home_dir) {
   if (!connections_[++last_id_].open(filename, home_dir)) {
     connections_.erase(last_id_);

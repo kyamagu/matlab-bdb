@@ -63,6 +63,7 @@ detail of each function.
     bdb.values   Return a list of values in the database.
     bdb.stat     Get a statistics of the database.
     bdb.exists   Check if an entry exists.
+    bdb.compact  Free unused blocks and shrink the database.
 
 Example
 -------

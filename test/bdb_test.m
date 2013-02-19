@@ -33,6 +33,7 @@ function test_functional_1()
     assert(strcmp(bdb.get('foo'), 'bar'));
     assert(bdb.exists('foo'));
     bdb.delete('foo');
+    bdb.compact();
     assert(~bdb.exists('foo'));
     assert(isempty(bdb.get('foo')));
     assert(isstruct(bdb.stat));
@@ -65,6 +66,7 @@ function test_functional_2()
     assert(strcmp(bdb.get(db_id, 'foo'), 'bar'));
     assert(bdb.exists(db_id, 'foo'));
     bdb.delete(db_id, 'foo');
+    bdb.compact(db_id);
     assert(~bdb.exists(db_id, 'foo'));
     assert(isempty(bdb.get(db_id, 'foo')));
     assert(isstruct(bdb.stat(db_id)));
