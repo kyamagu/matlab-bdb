@@ -54,6 +54,8 @@ API
 Currently following functions are available from matlab. Check `help` for the
 detail of each function.
 
+### Database API
+
     bdb.open     Open a Berkeley DB database.
     bdb.close    Close the database.
     bdb.put      Store a key-value pair.
@@ -64,6 +66,9 @@ detail of each function.
     bdb.stat     Get a statistics of the database.
     bdb.exists   Check if an entry exists.
     bdb.compact  Free unused blocks and shrink the database.
+
+### Cursor API
+
 
 Example
 -------
