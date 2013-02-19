@@ -1,5 +1,5 @@
 function flag = cursor_prev(cursor_id)
-%CURSOR_NEXT Move back a cursor.
+%CURSOR_PREV Move back a cursor.
 %
 %    flag = bdb.cursor_prev(cursor_id)
 %

@@ -69,36 +69,49 @@ detail of each function.
 
 ### Cursor API
 
+    bdb.cursor_open   Open a new cursor.
+    bdb.cursor_close  Close a cursor.
+    bdb.cursor_next   Move forward a cursor.
+    bdb.cursor_prev   Move back a cursor.
+    bdb.cursor_get    Retrieve a key and a value from a cursor.
 
 Example
 -------
 
 Here is a quick usage example.
 
-    >> bdb.open('test.db');    % Open a database.
-    >> bdb.put('foo', 'bar');  % Store a key-value pair.
-    >> bdb.put(2, magic(4));   % Store a key-value pair.
-    >> a = bdb.get('foo');     % Retrieve a value.
-    >> b = bdb.get(2);         % Retrieve a value.
-    >> flag = bdb.exists(3);   % Check if a key exists.
-    >> bdb.delete('a');        % Delete an entry.
-    >> keys = bdb.keys();      % All keys at once.
-    >> values = bdb.values();  % All values at once.
-    >> bdb.close();            % Finish the session.
+    bdb.open('test.db');    % Open a database.
+    bdb.put('foo', 'bar');  % Store a key-value pair.
+    bdb.put(2, magic(4));   % Store a key-value pair.
+    a = bdb.get('foo');     % Retrieve a value.
+    b = bdb.get(2);         % Retrieve a value.
+    flag = bdb.exists(3);   % Check if a key exists.
+    bdb.delete('a');        % Delete an entry.
+    keys = bdb.keys();      % All keys at once.
+    values = bdb.values();  % All values at once.
+    bdb.close();            % Finish the session.
 
 To open multiple sessions, use the session id returned from `bdb.open`.
 
-    >> id = bdb.open('test.db');
-    >> bdb.put(id, 'a', 'bar');
-    >> a = bdb.get(id, 'a');
-    >> bdb.close(id);
+    id = bdb.open('test.db');
+    bdb.put(id, 'a', 'bar');
+    a = bdb.get(id, 'a');
+    bdb.close(id);
 
 To use a database in multiple processes, open the database in an
 environment. Note that you need to create an environment directory
 if not existing. This will improve concurrency support.
 
-    >> mkdir('/path/to/test_db_env');
-    >> id = bdb.open('test.db', '/path/to/test_db_env');
+    mkdir('/path/to/test_db_env');
+    id = bdb.open('test.db', '/path/to/test_db_env');
+
+Cursor API allows iteration over the table.
+
+    cursor = bdb.cursor_open(id);
+    while bdb.cursor_next(cursor)
+      [key, value] = bdb.cursor_get(cursor);
+    end
+    bdb.cursor_close(cursor);
 
 Notes
 -----
