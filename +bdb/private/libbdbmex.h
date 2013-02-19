@@ -67,17 +67,27 @@ private:
 class Cursor {
 public:
   /// Create an empty cursor.
-  Cursor() : cursor_(NULL) {}
+  Cursor() : cursor_(NULL), code_(0) {}
   /// Destructor.
   ~Cursor();
   /// Open a new cursor.
   int open(DB* database_);
+  /// Return the last error code.
+  int error_code() const { return code_; }
+  /// Return the last error message.
+  const char* error_message() const { return db_strerror(code_); }
   /// Go to the next record.
-  int next(Record* record);
+  int next();
   /// Go to the previous record.
-  int prev(Record* record);
+  int prev();
+  /// Get the record.
+  Record* get() { return &record_; }
 
 private:
+  /// Last return code.
+  int code_;
+  /// Temporary record holder.
+  Record record_;
   /// Cursor pointer.
   DBC* cursor_;
 };
@@ -113,6 +123,8 @@ public:
   bool values(mxArray** output);
   /// Shrink the database file.
   bool compact();
+  /// Create a new cursor.
+  bool cursor(Cursor* cursor);
 
 private:
   /// Close the connection.
@@ -139,6 +151,12 @@ public:
   static int last_id();
   /// Get the connection.
   static Database* get(int id);
+  /// Create a new cursor.
+  static int open_cursor(int id);
+  /// Close the cursor.
+  static void close_cursor(int cursor_id);
+  /// Get the connection.
+  static Cursor* get_cursor(int cursor_id);
 
 private:
   /// Sessions instantiation is prohibited.
@@ -148,6 +166,8 @@ private:
 
   /// Connection pool.
   static map<int, Database> connections_;
+  /// Cursor pool.
+  static map<int, Cursor> cursors_;
   /// Last id used.
   static int last_id_;
 };

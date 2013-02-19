@@ -146,15 +146,18 @@ Cursor::~Cursor() {
 }
 
 int Cursor::open(DB* database_) {
-  return database_->cursor(database_, NULL, &cursor_, 0);
+  code_ = database_->cursor(database_, NULL, &cursor_, 0);
+  return code_;
 }
 
-int Cursor::next(Record* record) {
-  return cursor_->get(cursor_, record->key(), record->value(), DB_NEXT);
+int Cursor::next() {
+  code_ = cursor_->get(cursor_, record_.key(), record_.value(), DB_NEXT);
+  return code_;
 }
 
-int Cursor::prev(Record* record) {
-  return cursor_->get(cursor_, record->key(), record->value(), DB_PREV);
+int Cursor::prev() {
+  code_ = cursor_->get(cursor_, record_.key(), record_.value(), DB_PREV);
+  return code_;
 }
 
 Database::Database() : code_(0), database_(NULL), environment_(NULL) {}
@@ -290,10 +293,9 @@ bool Database::keys(mxArray** output) {
     return false;
   *output = mxCreateCellMatrix(num_keys, 1);
   int index = 0;
-  Record record;
-  while (index < num_keys && 0 == (code_ = cursor.next(&record))) {
+  while (index < num_keys && 0 == (code_ = cursor.next())) {
     mxArray* key_array;
-    record.get_key(&key_array);
+    cursor.get()->get_key(&key_array);
     mxSetCell(*output, index++, key_array);
   }
   return ok() || (code_ == DB_NOTFOUND);
@@ -317,10 +319,9 @@ bool Database::values(mxArray** output) {
     return false;
   *output = mxCreateCellMatrix(num_values, 1);
   int index = 0;
-  Record record;
-  while (index < num_values && 0 == (code_ = cursor.next(&record))) {
+  while (index < num_values && 0 == (code_ = cursor.next())) {
     mxArray* value_array;
-    record.get_value(&value_array);
+    cursor.get()->get_value(&value_array);
     mxSetCell(*output, index++, value_array);
   }
   return ok() || (code_ == DB_NOTFOUND);
@@ -334,6 +335,13 @@ bool Database::compact() {
                              NULL,
                              DB_FREE_SPACE,
                              NULL);
+  return ok();
+}
+
+bool Database::cursor(Cursor* cursor) {
+  if (cursor == NULL)
+    ERROR("Null pointer exception.");
+  code_ = cursor->open(database_);
   return ok();
 }
 
@@ -364,7 +372,31 @@ Database* Sessions::get(int id) {
   return &connection->second;
 }
 
+int Sessions::open_cursor(int id) {
+  int last_cursor_id = (cursors_.empty()) ? 0 : cursors_.rbegin()->first;
+  Database* connection = get(id);
+  Cursor& cursor = cursors_[++last_cursor_id];
+  if (!connection->cursor(&cursor)) {
+    cursors_.erase(last_cursor_id);
+    ERROR("Failed to create a cursor: %s", connection->error_message());
+  }
+  return last_cursor_id;
+}
+
+void Sessions::close_cursor(int cursor_id) {
+  cursors_.erase(cursor_id);
+}
+
+Cursor* Sessions::get_cursor(int cursor_id) {
+  map<int, Cursor>::iterator cursor = cursors_.find(cursor_id);
+  if (cursor == cursors_.end())
+    ERROR("Invalid cursor id: %d. Did you open the cursor?", cursor_id);
+  return &cursor->second;
+}
+
 map<int, Database> Sessions::connections_;
+
+map<int, Cursor> Sessions::cursors_;
 
 int Sessions::last_id_ = 0;
 
