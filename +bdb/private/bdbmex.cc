@@ -176,6 +176,21 @@ MEX_FUNCTION(compact) (int nlhs,
     ERROR("Failed to compact: %s", connection->error_message());
 }
 
+MEX_FUNCTION(sessions) (int nlhs,
+                        mxArray *plhs[],
+                        int nrhs,
+                        const mxArray *prhs[]) {
+  CheckInputArguments(0, 0, nrhs);
+  CheckOutputArguments(0, 1, nlhs);
+  const map<int, Database>& connections = Sessions::connections();
+  vector<int> session_ids;
+  session_ids.reserve(connections.size());
+  for (map<int, Database>::const_iterator it = connections.begin();
+       it != connections.end(); ++it)
+    session_ids.push_back(it->first);
+  plhs[0] = MxArray(session_ids).getMutable();
+}
+
 MEX_FUNCTION(cursor_open) (int nlhs,
                            mxArray *plhs[],
                            int nrhs,

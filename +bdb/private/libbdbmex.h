@@ -155,6 +155,8 @@ public:
   static void close_cursor(int cursor_id);
   /// Get the connection.
   static Cursor* get_cursor(int cursor_id);
+  /// Get the connections map.
+  static const map<int, Database>& connections();
 
 private:
   /// Sessions instantiation is prohibited.

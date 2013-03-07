@@ -391,6 +391,10 @@ Cursor* Sessions::get_cursor(int cursor_id) {
   return &cursor->second;
 }
 
+const map<int, Database>& Sessions::connections() {
+  return connections_;
+}
+
 map<int, Database> Sessions::connections_;
 
 map<int, Cursor> Sessions::cursors_;

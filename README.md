@@ -66,6 +66,7 @@ detail of each function.
     bdb.stat     Get a statistics of the database.
     bdb.exists   Check if an entry exists.
     bdb.compact  Free unused blocks and shrink the database.
+    bdb.sessions Return a list of open session ids.
 
 ### Cursor API
 
