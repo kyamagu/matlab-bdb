@@ -147,8 +147,6 @@ public:
   static void close(int id);
   /// Default id.
   static int default_id();
-  /// Last id.
-  static int last_id();
   /// Get the connection.
   static Database* get(int id);
   /// Create a new cursor.
@@ -168,8 +166,6 @@ private:
   static map<int, Database> connections_;
   /// Cursor pool.
   static map<int, Cursor> cursors_;
-  /// Last id used.
-  static int last_id_;
 };
 
 } // namespace bdbmex

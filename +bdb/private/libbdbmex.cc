@@ -346,11 +346,12 @@ bool Database::cursor(Cursor* cursor) {
 }
 
 int Sessions::open(const string& filename, const string& home_dir) {
-  if (!connections_[++last_id_].open(filename, home_dir)) {
-    connections_.erase(last_id_);
+  int session_id = default_id() + 1;
+  if (!connections_[session_id].open(filename, home_dir)) {
+    connections_.erase(session_id);
     ERROR("Unable to open: %s.", filename.c_str());
   }
-  return last_id_;
+  return session_id;
 }
 
 void Sessions::close(int id) {
@@ -359,10 +360,6 @@ void Sessions::close(int id) {
 
 int Sessions::default_id() {
   return (connections_.empty()) ? 0 : connections_.rbegin()->first;
-}
-
-int Sessions::last_id() {
-  return last_id_;
 }
 
 Database* Sessions::get(int id) {
@@ -397,7 +394,5 @@ Cursor* Sessions::get_cursor(int cursor_id) {
 map<int, Database> Sessions::connections_;
 
 map<int, Cursor> Sessions::cursors_;
-
-int Sessions::last_id_ = 0;
 
 } // namespace bdbmex
