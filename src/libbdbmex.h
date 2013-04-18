@@ -10,6 +10,7 @@
 #include <mex.h>
 #include <string>
 #include <vector>
+#include "mex/session.h"
 
 using namespace std;
 
@@ -27,7 +28,7 @@ public:
   Record(const mxArray* key);
   /// Construct a new record for store.
   Record(const mxArray* key, const mxArray* value);
-  ~Record();
+  virtual ~Record();
   /// Get key.
   void get_key(mxArray** key);
   /// Get value.
@@ -69,7 +70,7 @@ public:
   /// Create an empty cursor.
   Cursor() : cursor_(NULL), code_(0) {}
   /// Destructor.
-  ~Cursor();
+  virtual ~Cursor();
   /// Open a new cursor.
   int open(DB* database_);
   /// Return the last error code.
@@ -92,15 +93,77 @@ private:
   DBC* cursor_;
 };
 
+/// Transaction.
+class Transaction {
+public:
+  /// Destructor.
+  virtual ~Transaction() {}
+  /// Reset the transaction.
+  void reset(DB_TXN* txnid) { transaction_ = txnid; }
+  /// Return if the status is okay.
+  bool ok() const { return code_ == 0; }
+  /// Return the last error message.
+  const char* error_message() const { return db_strerror(code_); }
+  /// Get the transaction.
+  DB_TXN* get() { return transaction_; }
+  /// Abort the transaction.
+  bool abort();
+  /// Commit the transaction.
+  bool commit(uint32_t flags);
+
+private:
+  /// Last return code.
+  int code_;
+  /// Transaction C object.
+  DB_TXN* transaction_;
+};
+
+/// Database environment.
+class Environment {
+public:
+  /// Create an empty environment.
+  Environment();
+  /// Descructor.
+  virtual ~Environment();
+  /// Open an environment.
+  bool open(const string& home, uint32_t flags, int mode);
+  /// Close the environment.
+  bool close(uint32_t flags);
+  /// Return if the status is okay.
+  bool ok() const { return code_ == 0; }
+  /// Return the last error message.
+  const char* error_message() const { return db_strerror(code_); }
+  /// Get mutable pointer.
+  DB_ENV* get() { return environment_; }
+  /// Transaction.
+  bool txn_begin(uint32_t flags,
+                 Transaction* parent,
+                 Transaction* transaction);
+
+private:
+  /// Last return code.
+  int code_;
+  /// Environment C object.
+  DB_ENV* environment_;
+};
+
 /// Database connection.
 class Database {
 public:
   /// Create an empty database connection.
   Database();
   /// Destructor.
-  ~Database();
-  /// Open a connection. Optionally, it takes a path to the environment dir.
-  bool open(const string& filename, const string& home_dir = "");
+  virtual ~Database();
+  /// Open a connection.
+  bool open(const string& filename,
+            const string& name,
+            DBTYPE type,
+            uint32_t flags,
+            int mode,
+            Environment* environment,
+            Transaction* transaction);
+  /// Close the connection.
+  bool close(uint32_t flags);
   /// Return the last error code.
   int error_code() const;
   /// Return the last error message.
@@ -108,68 +171,55 @@ public:
   /// Return if the status is okay.
   bool ok() const { return code_ == 0; }
   /// Get an entry.
-  bool get(const mxArray* key, mxArray** value);
+  bool get(const mxArray* key,
+           uint32_t flags,
+           mxArray** value,
+           Transaction* transaction);
   /// Put an entry.
-  bool put(const mxArray* key, const mxArray* value);
+  bool put(const mxArray* key,
+           const mxArray* value,
+           uint32_t flags,
+           Transaction* transaction);
   /// Delete an entry.
-  bool del(const mxArray* key);
+  bool del(const mxArray* key,
+           uint32_t flags,
+           Transaction* transaction);
   /// Check if the entry exists.
-  bool exists(const mxArray* key, mxArray** value);
+  bool exists(const mxArray* key,
+              uint32_t flags,
+              mxArray** value,
+              Transaction* transaction);
   /// Return database statistics.
-  bool stat(mxArray** output);
+  bool stat(uint32_t flags, mxArray** output, Transaction* transaction);
   /// Dump keys in the database.
   bool keys(mxArray** output);
   /// Dump values in the database.
   bool values(mxArray** output);
   /// Shrink the database file.
-  bool compact();
+  bool compact(uint32_t flags,
+               DB_COMPACT* compact_data,
+               Transaction* transaction);
   /// Create a new cursor.
   bool cursor(Cursor* cursor);
 
 private:
-  /// Close the connection.
-  bool close();
 
   /// Last return code.
   int code_;
   /// DB C object.
   DB* database_;
-  /// Environment C object.
-  DB_ENV* environment_;
-};
-
-/// Database session manager. Keep the state space.
-class Sessions {
-public:
-  /// Create a new connection.
-  static int open(const string& filename, const string& home_dir = "");
-  /// Close the connection.
-  static void close(int id);
-  /// Default id.
-  static int default_id();
-  /// Get the connection.
-  static Database* get(int id);
-  /// Create a new cursor.
-  static int open_cursor(int id);
-  /// Close the cursor.
-  static void close_cursor(int cursor_id);
-  /// Get the connection.
-  static Cursor* get_cursor(int cursor_id);
-  /// Get the connections map.
-  static const map<int, Database>& connections();
-
-private:
-  /// Sessions instantiation is prohibited.
-  Sessions();
-  /// Destructor is prohibited.
-  ~Sessions();
-
-  /// Connection pool.
-  static map<int, Database> connections_;
-  /// Cursor pool.
-  static map<int, Cursor> cursors_;
 };
 
 } // namespace bdbmex
+
+namespace mex {
+
+// Template instanciations.
+extern template class Session<bdbmex::Cursor>;
+extern template class Session<bdbmex::Database>;
+extern template class Session<bdbmex::Environment>;
+extern template class Session<bdbmex::Transaction>;
+
+}
 
 #endif // __LIBBDBMEX_H__

@@ -14,6 +14,7 @@ The package contains following files.
 
     +bdb/          API functions.
     +bdb/private/  Internal driver functions.
+    src/           C++ source files.
     test/          Optional functions to check the functionality.
     README.md      This file.
 
@@ -68,6 +69,14 @@ detail of each function.
     bdb.compact  Free unused blocks and shrink the database.
     bdb.sessions Return a list of open session ids.
 
+### Environment API
+
+    bdb.env_open  Open an environment.
+    bdb.env_close Close an environment.
+    bdb.begin     Begin a transaction.
+    bdb.commit    Commit a transaction.
+    bdb.abort     Abort a transaction.
+
 ### Cursor API
 
     bdb.cursor_open   Open a new cursor.
@@ -81,7 +90,7 @@ Example
 
 Here is a quick usage example.
 
-    bdb.open('test.db');    % Open a database.
+    bdb.open('test.bdb');   % Open a database.
     bdb.put('foo', 'bar');  % Store a key-value pair.
     bdb.put(2, magic(4));   % Store a key-value pair.
     a = bdb.get('foo');     % Retrieve a value.
@@ -94,17 +103,24 @@ Here is a quick usage example.
 
 To open multiple sessions, use the session id returned from `bdb.open`.
 
-    id = bdb.open('test.db');
+    id = bdb.open('test.bdb');
     bdb.put(id, 'a', 'bar');
     a = bdb.get(id, 'a');
     bdb.close(id);
 
-To use a database in multiple processes, open the database in an
-environment. Note that you need to create an environment directory
-if not existing. This will improve concurrency support.
+To use a database from conccurrent processes, open a database in an
+environment. Note that you need to create an environment directory if not
+existing. This will enable transactional protection.
 
     mkdir('/path/to/test_db_env');
-    id = bdb.open('test.db', '/path/to/test_db_env');
+    bdb.env_open('/path/to/test_db_env');
+    bdb.open('test_db.bdb');
+    bdb.begin();
+    bdb.put(1, 'foo');
+    bdb.put(2, 'bar');
+    bdb.commit();
+    bdb.close();
+    bdb.env_close();
 
 Cursor API allows iteration over the table.
 
@@ -113,6 +129,19 @@ Cursor API allows iteration over the table.
       [key, value] = bdb.cursor_get(cursor);
     end
     bdb.cursor_close(cursor);
+
+Some functions accept options in key-value arguments. Logical options may omit
+a value to specify `true`.
+
+    environment_id = bdb.env_open('/path/to/env');
+    bdb.open('test.bdb', 'Create', true, ...
+                         'Truncate', true, ...
+                         'Type', 'hash', ...
+                         'Environment', environment_id);
+    bdb.open('test2.bdb', 'Create', ...
+                          'Truncate', ...
+                          'Type', 'hash', ...
+                          'Environment', environment_id);
 
 Notes
 -----

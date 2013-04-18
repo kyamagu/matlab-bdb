@@ -49,7 +49,7 @@ function make(varargin)
     [config, compiler_flags] = parse_options(varargin{:});
     cmd = sprintf(...
         'mex -largeArrayDims%s -outdir %s -output mex_function_ %s %s%s',...
-        find_source_files(fullfile(package_dir, 'private')),...
+        find_source_files(fullfile(fileparts(package_dir), 'src')),...
         fullfile(package_dir, 'private'),...
         config.db_path,...
         repmat(['-DENABLE_ZLIB ', config.zlib_path], 1, config.enable_zlib),...
@@ -57,12 +57,10 @@ function make(varargin)
         );
     disp(cmd);
     eval(cmd);
-
 end
 
 function [config, compiler_flags] = parse_options(varargin)
 %PARSE_OPTIONS Parse build options.
-
     config.db_path = '-ldb';
     config.zlib_path = '-lz';
     config.enable_zlib = true;
@@ -82,12 +80,10 @@ function [config, compiler_flags] = parse_options(varargin)
         end
     end
     compiler_flags = sprintf(' %s', varargin{~mark_for_delete});
-
 end
 
 function files = find_source_files(root_dir)
 %SOURCE_FILES List of source files in a string.
-
     files = dir(root_dir);
     srcs = files(cellfun(@(x)~isempty(x), ...
                  regexp({files.name},'\S+\.(c)|(cc)|(cpp)|(C)')));
@@ -97,5 +93,4 @@ function files = find_source_files(root_dir)
     subdir_srcs = cellfun(@(x)find_source_files(fullfile(root_dir,x)),...
                           {subdirs.name}, 'UniformOutput', false);
     files = [sprintf(' %s', srcs{:}), subdir_srcs{:}];
-
 end
