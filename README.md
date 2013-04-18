@@ -65,7 +65,7 @@ detail of each function.
     bdb.keys     Return a list of keys in the database.
     bdb.values   Return a list of values in the database.
     bdb.stat     Get a statistics of the database.
-    bdb.exists   Check if an entry exists.
+    bdb.exist    Check if an entry exists.
     bdb.compact  Free unused blocks and shrink the database.
     bdb.sessions Return a list of open session ids.
 
@@ -95,7 +95,7 @@ Here is a quick usage example.
     bdb.put(2, magic(4));   % Store a key-value pair.
     a = bdb.get('foo');     % Retrieve a value.
     b = bdb.get(2);         % Retrieve a value.
-    flag = bdb.exists(3);   % Check if a key exists.
+    flag = bdb.exist(3);    % Check if a key exists.
     bdb.delete('a');        % Delete an entry.
     keys = bdb.keys();      % All keys at once.
     values = bdb.values();  % All values at once.

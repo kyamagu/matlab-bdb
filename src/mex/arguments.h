@@ -24,7 +24,7 @@ void CheckOutputArguments(int min_args, int max_args, int nlhs);
 ///     options.set("IntegerOption", 1)
 ///     options.set("StringOption",  "")
 ///     options.set("BooleanOption", false);
-///     arguments.update(nrhs-2, &prhs[2]);
+///     arguments.update(prhs + 2, prhs + nrhs);
 ///     myCFunction(options["IntegerOption"].toInt(),
 ///                 options["StringOption"].toString(),
 ///                 options["BooleanOption"].toBool());
@@ -47,17 +47,7 @@ public:
   /// Lookup operator.
   const MxArray& operator [](const std::string& key) const;
   /// Show debugging messages to stdout.
-  void show() const {
-    for (std::map<std::string, MxArray>::const_iterator it = entries_.begin();
-         it != entries_.end(); ++it) {
-      if (it->second.isLogical())
-        mexPrintf("%s: %d\n", it->first.c_str(), it->second.toBool());
-      else if (it->second.isNumeric())
-        mexPrintf("%s: %g\n", it->first.c_str(), it->second.toDouble());
-      else if (it->second.isChar())
-        mexPrintf("%s: %s\n", it->first.c_str(), it->second.toString().c_str());
-    }
-  }
+  void print() const;
 
 private:
   /// key-value storage.

@@ -78,4 +78,16 @@ const MxArray& VariableInputArguments::operator [](
   return (*it).second;
 }
 
+void VariableInputArguments::print() const {
+  for (std::map<std::string, MxArray>::const_iterator it = entries_.begin();
+       it != entries_.end(); ++it) {
+    if (it->second.isLogical())
+      mexPrintf("%s: %d\n", it->first.c_str(), it->second.toBool());
+    else if (it->second.isNumeric())
+      mexPrintf("%s: %g\n", it->first.c_str(), it->second.toDouble());
+    else if (it->second.isChar())
+      mexPrintf("%s: %s\n", it->first.c_str(), it->second.toString().c_str());
+  }
+}
+
 } // namespace mex
