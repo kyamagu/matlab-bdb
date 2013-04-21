@@ -2,6 +2,7 @@
 ///
 /// Kota Yamaguchi 2012 <kyamagu@cs.stonybrook.edu>
 
+#include <cstring>
 #include "libbdbmex.h"
 #include "mex/arguments.h"
 #include "mex/function.h"
