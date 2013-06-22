@@ -24,7 +24,7 @@ DBTYPE get_dbtype(const string& name) {
   map<string, DBTYPE> db_types;
   db_types["btree"] = DB_BTREE;
   db_types["hash"] = DB_HASH;
-  db_types["heap"] = DB_HEAP;
+  // db_types["heap"] = DB_HEAP;
   db_types["queue"] = DB_QUEUE;
   db_types["recno"] = DB_RECNO;
   db_types["unknown"] = DB_UNKNOWN;

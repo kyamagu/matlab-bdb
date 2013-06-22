@@ -360,30 +360,30 @@ bool Database::stat(uint32_t flags,
       free(stats);
       break;
     }
-    case DB_HEAP: {
-      DB_HEAP_STAT* stats;
-      code_ = database_->stat(database_,
-                              (transaction == NULL) ? NULL : transaction->get(),
-                              &stats,
-                              flags);
-      if (output != NULL) {
-        const char* kFields[] = {
-            "magic", "version", "nrecs", "pagecnt", "pagesize", "nregions",
-            "regionsize"
-            };
-        MxArray output_data = MxArray::Struct(7, kFields);
-        output_data.set(kFields[0], double(stats->heap_magic));
-        output_data.set(kFields[1], double(stats->heap_version));
-        output_data.set(kFields[2], double(stats->heap_nrecs));
-        output_data.set(kFields[3], double(stats->heap_pagecnt));
-        output_data.set(kFields[4], double(stats->heap_pagesize));
-        output_data.set(kFields[5], double(stats->heap_nregions));
-        output_data.set(kFields[6], double(stats->heap_regionsize));
-        *output = output_data.getMutable();
-      }
-      free(stats);
-      break;
-    }
+    // case DB_HEAP: {
+    //   DB_HEAP_STAT* stats;
+    //   code_ = database_->stat(database_,
+    //                           (transaction == NULL) ? NULL : transaction->get(),
+    //                           &stats,
+    //                           flags);
+    //   if (output != NULL) {
+    //     const char* kFields[] = {
+    //         "magic", "version", "nrecs", "pagecnt", "pagesize", "nregions",
+    //         "regionsize"
+    //         };
+    //     MxArray output_data = MxArray::Struct(7, kFields);
+    //     output_data.set(kFields[0], double(stats->heap_magic));
+    //     output_data.set(kFields[1], double(stats->heap_version));
+    //     output_data.set(kFields[2], double(stats->heap_nrecs));
+    //     output_data.set(kFields[3], double(stats->heap_pagecnt));
+    //     output_data.set(kFields[4], double(stats->heap_pagesize));
+    //     output_data.set(kFields[5], double(stats->heap_nregions));
+    //     output_data.set(kFields[6], double(stats->heap_regionsize));
+    //     *output = output_data.getMutable();
+    //   }
+    //   free(stats);
+    //   break;
+    // }
     case DB_BTREE:
     case DB_RECNO: {
       DB_BTREE_STAT* stats;
