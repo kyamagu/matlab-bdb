@@ -65,7 +65,8 @@ MEX_FUNCTION(open) (int nlhs,
   string name = options["Name"].toString();
   uint32_t flags =
       ((options["AutoCommit"].toBool() && environment) ? DB_AUTO_COMMIT : 0) |
-      (options["Create"].toBool()          ? DB_CREATE : 0) |
+      ((options["Create"].toBool() && !options["Rdonly"].toBool())
+        ? DB_CREATE : 0) |
       (options["Excl"].toBool()            ? DB_EXCL : 0) |
       (options["Multiversion"].toBool()    ? DB_MULTIVERSION : 0) |
       (options["Nommap"].toBool()          ? DB_NOMMAP : 0) |
