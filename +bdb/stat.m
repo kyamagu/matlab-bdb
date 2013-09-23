@@ -29,5 +29,5 @@ function result = stat(varargin)
 % including modified but not yet committed data.
 %
 % See also bdb.open bdb.close
-  result = mex_function_(mfilename, varargin{:});
+  result = libbdb(mfilename, varargin{:});
 end

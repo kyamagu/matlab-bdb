@@ -22,5 +22,5 @@ function commit(varargin)
 % Write but do not synchronously flush the log on transaction commit.
 %
 % See also bdb.begin bdb.abort bdb.env_open bdb.env_close
-  mex_function_(mfilename, varargin{:});
+  libbdb(mfilename, varargin{:});
 end

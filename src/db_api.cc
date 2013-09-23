@@ -46,8 +46,8 @@ MEX_FUNCTION(open) (int nlhs,
   options.set("Transaction",      0);
   options.set("Name",             string(""));
   options.set("Type",             string("btree"));
-  options.set("AutoCommit",       true);
-  options.set("Create",           true);
+  options.set("AutoCommit",       (nrhs > 1) ? false : true);
+  options.set("Create",           (nrhs > 1) ? false : true);
   options.set("Excl",             false);
   options.set("Multiversion",     false);
   options.set("Nommap",           false);
@@ -65,8 +65,7 @@ MEX_FUNCTION(open) (int nlhs,
   string name = options["Name"].toString();
   uint32_t flags =
       ((options["AutoCommit"].toBool() && environment) ? DB_AUTO_COMMIT : 0) |
-      ((options["Create"].toBool() && !options["Rdonly"].toBool())
-        ? DB_CREATE : 0) |
+      (options["Create"].toBool()          ? DB_CREATE : 0) |
       (options["Excl"].toBool()            ? DB_EXCL : 0) |
       (options["Multiversion"].toBool()    ? DB_MULTIVERSION : 0) |
       (options["Nommap"].toBool()          ? DB_NOMMAP : 0) |

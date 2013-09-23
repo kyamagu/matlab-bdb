@@ -13,7 +13,6 @@ Contents
 The package contains following files.
 
     +bdb/          API functions.
-    +bdb/private/  Internal driver functions.
     src/           C++ source files.
     test/          Optional functions to check the functionality.
     README.md      This file.
@@ -133,15 +132,12 @@ Cursor API allows iteration over the table.
 Some functions accept options in key-value arguments. Logical options may omit
 a value to specify `true`.
 
-    environment_id = bdb.env_open('/path/to/env');
     bdb.open('test.bdb', 'Create', true, ...
                          'Truncate', true, ...
-                         'Type', 'hash', ...
-                         'Environment', environment_id);
+                         'Type', 'hash');
     bdb.open('test2.bdb', 'Create', ...
                           'Truncate', ...
-                          'Type', 'hash', ...
-                          'Environment', environment_id);
+                          'Type', 'hash');
 
 Notes
 -----

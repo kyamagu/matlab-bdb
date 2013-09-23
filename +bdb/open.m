@@ -6,6 +6,11 @@ function id = open(filename, varargin)
 % The function opens the database session for the given db file. When empty
 % filename is give, the database will be in-memory.
 %
+% ## Examples
+%
+%    id = bdb.open(filename, 'Create', 'Truncate')
+%    id = bdb.open(filename, 'Rdonly')
+%
 % ## Options
 %
 % _Environment_ [0]
@@ -69,5 +74,5 @@ function id = open(filename, varargin)
 %
 % See also bdb.close bdb.put bdb.get bdb.delete bdb.stat bdb.keys
 % bdb.values bdb.env_open
-  id = mex_function_(mfilename, filename, varargin{:});
+  id = libbdb(mfilename, filename, varargin{:});
 end

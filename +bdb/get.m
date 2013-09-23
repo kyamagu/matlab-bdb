@@ -57,5 +57,5 @@ function value = get(varargin)
 % configured.
 %
 % See also bdb.put bdb.delete
-  value = mex_function_(mfilename, varargin{:});
+  value = libbdb(mfilename, varargin{:});
 end

@@ -58,5 +58,5 @@ function transaction_id = begin(varargin)
 % Write, but do not synchronously flush, the log when this transaction commits.
 %
 % See also bdb.commit bdb.abort bdb.env_open bdb.env_close
-  transaction_id = mex_function_(mfilename, varargin{:});
+  transaction_id = libbdb(mfilename, varargin{:});
 end

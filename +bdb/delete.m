@@ -31,5 +31,5 @@ function delete(varargin)
 % key parameter refers.
 %
 % See also bdb.put bdb.get
-  mex_function_(mfilename, varargin{:});
+  libbdb(mfilename, varargin{:});
 end

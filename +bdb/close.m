@@ -14,5 +14,5 @@ function close(varargin)
 % Do not flush cached information to disk.
 %
 % See also bdb.open
-  mex_function_(mfilename, varargin{:});
+  libbdb(mfilename, varargin{:});
 end

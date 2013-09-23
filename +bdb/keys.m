@@ -10,5 +10,5 @@ function results = keys(varargin)
 % The results are returned as a cell array.
 %
 % See also bdb.values
-  results = mex_function_(mfilename, varargin{:});
+  results = libbdb(mfilename, varargin{:});
 end

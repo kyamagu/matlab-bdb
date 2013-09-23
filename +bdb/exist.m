@@ -31,5 +31,5 @@ function value = exist(varargin)
 % configured.
 %
 % See also bdb.get
-  value = mex_function_(mfilename, varargin{:});
+  value = libbdb(mfilename, varargin{:});
 end

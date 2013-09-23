@@ -6,6 +6,6 @@ function session_ids = sessions()
 % The function retrieves a list of ids for the currently opening database.
 %
 % See also bdb.open
-  session_ids = mex_function_(mfilename);
+  session_ids = libbdb(mfilename);
 end
 

@@ -39,5 +39,5 @@ function compact_data = compact(varargin)
 % identifies the lock timeout used for implicit transactions, in microseconds.
 %
 % See also bdb.open
-  compact_data = mex_function_(mfilename, varargin{:});
+  compact_data = libbdb(mfilename, varargin{:});
 end

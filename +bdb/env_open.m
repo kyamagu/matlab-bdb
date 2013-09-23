@@ -88,5 +88,5 @@ function id = env_open(home_dir, varargin)
 % UNIX file mode.
 %
 % See also bdb.close_environment bdb.open
-  id = mex_function_(mfilename, home_dir, varargin{:});
+  id = libbdb(mfilename, home_dir, varargin{:});
 end

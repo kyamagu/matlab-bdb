@@ -46,5 +46,5 @@ function put(varargin)
 % for sorted duplicates.
 %
 % See also bdb.get bdb.delete
-  mex_function_(mfilename, varargin{:});
+  libbdb(mfilename, varargin{:});
 end

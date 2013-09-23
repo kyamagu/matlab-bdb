@@ -14,5 +14,5 @@ function env_close(varargin)
 % When closing each database handle internally, synchronize the database.
 %
 % See also bdb.open
-  mex_function_(mfilename, varargin{:});
+  libbdb(mfilename, varargin{:});
 end

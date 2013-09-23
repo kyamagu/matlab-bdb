@@ -7,5 +7,5 @@ function cursor_id = cursor_open(varargin)
 % The function creates a new cursor.
 %
 % See also bdb.cursor_close
-  cursor_id = mex_function_(mfilename, varargin{:});
+  cursor_id = libbdb(mfilename, varargin{:});
 end

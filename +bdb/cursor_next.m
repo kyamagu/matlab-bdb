@@ -7,5 +7,5 @@ function flag = cursor_next(cursor_id)
 % returns false. Otherwise it returns true.
 %
 % See also bdb.cursor_prev bdb.cursor_get
-  flag = mex_function_(mfilename, cursor_id);
+  flag = libbdb(mfilename, cursor_id);
 end

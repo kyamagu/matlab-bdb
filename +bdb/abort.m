@@ -8,5 +8,5 @@ function abort(varargin)
 % transaction is aborted.
 %
 % See also bdb.begin bdb.commit
-  mex_function_(mfilename, varargin{:});
+  libbdb(mfilename, varargin{:});
 end
