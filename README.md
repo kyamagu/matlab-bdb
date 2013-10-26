@@ -163,4 +163,4 @@ all versions of matlab, and may change in the future matlab release.
 License
 -------
 
-The code may be redistributed under BSD 3-clause license.
+The code may be redistributed under AGPL.
